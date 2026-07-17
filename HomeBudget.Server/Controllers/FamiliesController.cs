@@ -41,6 +41,9 @@ public class FamiliesController : ControllerBase
         return Ok(ApiResponse<FamilyDto>.Ok(result));
     }
 
+    /// <summary>
+    /// Atualiza o nome de uma família pertencente ao usuário.
+    /// </summary>
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<ApiResponse<FamilyDto>>> UpdateFamily(Guid id, UpdateFamilyRequest request)
     {
@@ -49,6 +52,9 @@ public class FamiliesController : ControllerBase
         return Ok(ApiResponse<FamilyDto>.Ok(result));
     }
 
+    /// <summary>
+    /// Exclui uma família pertencente ao usuário.
+    /// </summary>
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult<ApiResponse>> DeleteFamily(Guid id)
     {
@@ -65,12 +71,18 @@ public class FamiliesController : ControllerBase
     }
 
     [HttpGet("{familyId:guid}/familiars")]
-    public async Task<ActionResult<ApiResponse<List<FamiliarDto>>>> GetFamiliars(Guid familyId)
+    public async Task<ActionResult<ApiResponse<PagedResult<FamiliarDto>>>> GetFamiliars(
+        Guid familyId,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10)
     {
-        var result = await _familyService.GetFamiliarsAsync(familyId);
-        return Ok(ApiResponse<List<FamiliarDto>>.Ok(result));
+        var result = await _familyService.GetFamiliarsAsync(familyId, page, pageSize);
+        return Ok(ApiResponse<PagedResult<FamiliarDto>>.Ok(result));
     }
 
+    /// <summary>
+    /// Atualiza os dados (nome, idade) de um familiar específico associado a uma família.
+    /// </summary>
     [HttpPut("{familyId:guid}/familiars/{id:guid}")]
     public async Task<ActionResult<ApiResponse<FamiliarDto>>> UpdateFamiliar(Guid familyId, Guid id, UpdateFamiliarRequest request)
     {
@@ -78,6 +90,9 @@ public class FamiliesController : ControllerBase
         return Ok(ApiResponse<FamiliarDto>.Ok(result));
     }
 
+    /// <summary>
+    /// Exclui um familiar específico associado a uma família.
+    /// </summary>
     [HttpDelete("{familyId:guid}/familiars/{id:guid}")]
     public async Task<ActionResult<ApiResponse>> DeleteFamiliar(Guid familyId, Guid id)
     {

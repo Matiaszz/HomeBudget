@@ -15,7 +15,7 @@ import { RegisterView } from "@/components/auth/RegisterView";
 import { AuthVisualNarrative } from "@/components/auth/AuthVisualNarrative";
 import { TransactionsManager, type Transaction, type UserDto } from "@/components/dashboard/TransactionsManager";
 import { FamilySelectionView } from "@/components/family/FamilySelectionView";
-import { FamiliarsManager, type Familiar } from "@/components/family/FamiliarsManager";
+import { FamiliarsManager, type Familiar, type PagedResult } from "@/components/family/FamiliarsManager";
 import { FormField } from "@/components/auth/FormField";
 
 interface LoginResponse {
@@ -40,6 +40,9 @@ export default function App() {
   const [families, setFamilies] = useState<Family[]>([]);
   const [selectedFamily, setSelectedFamily] = useState<Family | null>(null);
   const [familiars, setFamiliars] = useState<Familiar[]>([]);
+  const [familiarsPage, setFamiliarsPage] = useState(1);
+  const [familiarsTotalPages, setFamiliarsTotalPages] = useState(1);
+  const [familiarsTotalCount, setFamiliarsTotalCount] = useState(0);
 
   // Transaction states
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -99,11 +102,14 @@ export default function App() {
     }
   };
 
-  // Fetch familiars from backend
-  const fetchFamiliars = async (familyId: string) => {
+  // Fetch familiars from backend (paginated)
+  const fetchFamiliars = async (familyId: string, page: number = 1) => {
     try {
-      const response = await apiRequest<Familiar[]>(`/api/families/${familyId}/familiars`);
-      setFamiliars(response);
+      const response = await apiRequest<PagedResult<Familiar>>(`/api/families/${familyId}/familiars?page=${page}&pageSize=10`);
+      setFamiliars(response.items);
+      setFamiliarsPage(response.page);
+      setFamiliarsTotalPages(response.totalPages);
+      setFamiliarsTotalCount(response.totalCount);
     } catch (err) {
       console.error("Erro ao carregar familiares", err);
     }
@@ -144,7 +150,8 @@ export default function App() {
       if (storedFamily) {
         const family = JSON.parse(storedFamily) as Family;
         setSelectedFamily(family);
-        fetchFamiliars(family.id);
+        setFamiliarsPage(1);
+        fetchFamiliars(family.id, 1);
       }
     } else {
       setFamilies([]);
@@ -264,7 +271,8 @@ export default function App() {
     if (user) {
       localStorage.setItem(`selected_family_${user.id}`, JSON.stringify(family));
     }
-    fetchFamiliars(family.id);
+    setFamiliarsPage(1);
+    fetchFamiliars(family.id, 1);
   };
 
   const handleCreateFamily = async (name: string) => {
@@ -289,6 +297,7 @@ export default function App() {
     }
   };
 
+  // Atualiza os dados de uma família via API PUT /api/families/{id}
   const handleUpdateFamily = async (id: string, name: string) => {
     setLoading(true);
     setError(null);
@@ -297,7 +306,9 @@ export default function App() {
         method: "PUT",
         body: JSON.stringify({ nome: name }),
       });
+      // Atualiza a lista de famílias no estado
       setFamilies((prev) => prev.map((f) => (f.id === id ? updatedFamily : f)));
+      // Se a família editada for a atualmente selecionada, atualiza também os dados dela no painel
       if (selectedFamily && selectedFamily.id === id) {
         setSelectedFamily(updatedFamily);
       }
@@ -313,6 +324,7 @@ export default function App() {
     }
   };
 
+  // Exclui uma família via API DELETE /api/families/{id}
   const handleDeleteFamily = async (id: string) => {
     setLoading(true);
     setError(null);
@@ -320,7 +332,9 @@ export default function App() {
       await apiRequest<void>(`/api/families/${id}`, {
         method: "DELETE",
       });
+      // Remove a família excluída do estado
       setFamilies((prev) => prev.filter((f) => f.id !== id));
+      // Se a família excluída era a ativa no painel, desmarca e limpa a lista de familiares
       if (selectedFamily && selectedFamily.id === id) {
         setSelectedFamily(null);
         setFamiliars([]);
@@ -342,12 +356,13 @@ export default function App() {
     setLoading(true);
     setError(null);
     try {
-      const newFamiliar = await apiRequest<Familiar>(`/api/families/${selectedFamily.id}/familiars`, {
+      await apiRequest<Familiar>(`/api/families/${selectedFamily.id}/familiars`, {
         method: "POST",
         body: JSON.stringify({ nome, idade }),
       });
-      setFamiliars((prev) => [...prev, newFamiliar]);
       setSuccess("Familiar adicionado com sucesso!");
+      // Recarrega a página atual para obter a lista atualizada com paginação do backend
+      await fetchFamiliars(selectedFamily.id, familiarsPage);
     } catch (err) {
       if (err instanceof ApiError) {
         setError(getFriendlyErrorMessage(err.errorCode, err.errorMessage));
@@ -359,6 +374,7 @@ export default function App() {
     }
   };
 
+  // Atualiza os dados de um familiar via API PUT /api/families/{familyId}/familiars/{id}
   const handleUpdateFamiliar = async (id: string, nome: string, idade: number) => {
     if (!selectedFamily) return;
     setLoading(true);
@@ -368,6 +384,7 @@ export default function App() {
         method: "PUT",
         body: JSON.stringify({ nome, idade }),
       });
+      // Atualiza o familiar modificado no estado
       setFamiliars((prev) => prev.map((f) => (f.id === id ? updatedFamiliar : f)));
       setSuccess("Familiar atualizado com sucesso!");
     } catch (err) {
@@ -381,6 +398,7 @@ export default function App() {
     }
   };
 
+  // Exclui um familiar via API DELETE /api/families/{familyId}/familiars/{id}
   const handleDeleteFamiliar = async (id: string) => {
     if (!selectedFamily) return;
     setLoading(true);
@@ -389,8 +407,11 @@ export default function App() {
       await apiRequest<void>(`/api/families/${selectedFamily.id}/familiars/${id}`, {
         method: "DELETE",
       });
-      setFamiliars((prev) => prev.filter((f) => f.id !== id));
       setSuccess("Familiar removido com sucesso!");
+      // Se era o único item da página e estamos em uma página maior que 1, volta uma página
+      const isOnlyItem = familiars.length === 1 && familiarsPage > 1;
+      const targetPage = isOnlyItem ? familiarsPage - 1 : familiarsPage;
+      await fetchFamiliars(selectedFamily.id, targetPage);
     } catch (err) {
       if (err instanceof ApiError) {
         setError(getFriendlyErrorMessage(err.errorCode, err.errorMessage));
@@ -408,6 +429,9 @@ export default function App() {
     }
     setSelectedFamily(null);
     setFamiliars([]);
+    setFamiliarsPage(1);
+    setFamiliarsTotalPages(1);
+    setFamiliarsTotalCount(0);
   };
 
   const handleAddTransaction = (tx: { description: string; amount: number; type: "income" | "expense"; category: string; date: string }) => {
@@ -733,6 +757,10 @@ export default function App() {
                   onUpdateFamiliar={handleUpdateFamiliar}
                   onDeleteFamiliar={handleDeleteFamiliar}
                   loading={loading}
+                  page={familiarsPage}
+                  totalPages={familiarsTotalPages}
+                  totalCount={familiarsTotalCount}
+                  onPageChange={(page) => selectedFamily && fetchFamiliars(selectedFamily.id, page)}
                 />
               </div>
 

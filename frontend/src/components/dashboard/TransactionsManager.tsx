@@ -230,7 +230,7 @@ export function TransactionsManager({
             </div>
           ) : (
             <div className="divide-y divide-border border border-border rounded-lg overflow-hidden bg-background">
-              {transactions.map(tx => (
+              {transactions.slice(0, 10).map(tx => (
                 <div key={tx.id} className="flex items-center justify-between p-3.5 hover:bg-muted/10 transition-colors">
                   <div className="flex items-center gap-3">
                     <div className={`p-2 rounded-lg border ${tx.type === "income" ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600" : "bg-muted border-border text-muted-foreground"}`}>

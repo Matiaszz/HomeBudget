@@ -84,7 +84,7 @@ public class FamilyService : IFamilyService
         };
     }
 
-    public async Task<List<FamiliarDto>> GetFamiliarsAsync(Guid familyId)
+    public async Task<PagedResult<FamiliarDto>> GetFamiliarsAsync(Guid familyId, int page, int pageSize)
     {
         var family = await _familyRepository.GetFamilyByIdAsync(familyId);
         if (family == null)
@@ -92,29 +92,43 @@ public class FamilyService : IFamilyService
             throw new BusinessException("FAMILY_NOT_FOUND", "Família não encontrada.");
         }
 
-        var familiars = await _familyRepository.GetFamiliarsAsync(familyId);
-        return familiars.Select(f => new FamiliarDto
+        var (familiars, totalCount) = await _familyRepository.GetFamiliarsPaginatedAsync(familyId, page, pageSize);
+        
+        return new PagedResult<FamiliarDto>
         {
-            Id = f.Id,
-            Name = f.Name,
-            Age = f.Age
-        }).ToList();
+            Items = familiars.Select(f => new FamiliarDto
+            {
+                Id = f.Id,
+                Name = f.Name,
+                Age = f.Age
+            }).ToList(),
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize
+        };
     }
 
+    /// <summary>
+    /// Atualiza os dados de um familiar específico.
+    /// Valida a existência da família correspondente e se o familiar pertence de fato a ela.
+    /// </summary>
     public async Task<FamiliarDto> UpdateFamiliarAsync(Guid familyId, Guid id, UpdateFamiliarRequest request)
     {
+        // 1. Validar se a família alvo existe no banco
         var family = await _familyRepository.GetFamilyByIdAsync(familyId);
         if (family == null)
         {
             throw new BusinessException("FAMILY_NOT_FOUND", "Família não encontrada.");
         }
 
+        // 2. Buscar o familiar e garantir que ele pertença à família informada
         var familiar = await _familyRepository.GetFamiliarByIdAsync(id);
         if (familiar == null || familiar.FamilyId != familyId)
         {
             throw new BusinessException("FAMILIAR_NOT_FOUND", "Familiar não encontrado.");
         }
 
+        // 3. Atualizar e persistir as alterações
         familiar.Name = request.Name;
         familiar.Age = request.Age;
 
@@ -128,33 +142,48 @@ public class FamilyService : IFamilyService
         };
     }
 
+    /// <summary>
+    /// Exclui um familiar de uma família.
+    /// Valida se a família e o familiar existem e se pertencem um ao outro antes de deletar.
+    /// </summary>
     public async Task DeleteFamiliarAsync(Guid familyId, Guid id)
     {
+        // 1. Validar se a família existe
         var family = await _familyRepository.GetFamilyByIdAsync(familyId);
         if (family == null)
         {
             throw new BusinessException("FAMILY_NOT_FOUND", "Família não encontrada.");
         }
 
+        // 2. Validar se o familiar existe e se pertence a essa família
         var familiar = await _familyRepository.GetFamiliarByIdAsync(id);
         if (familiar == null || familiar.FamilyId != familyId)
         {
             throw new BusinessException("FAMILIAR_NOT_FOUND", "Familiar não encontrado.");
         }
 
+        // 3. Remover o familiar da base de dados
         _familyRepository.DeleteFamiliar(familiar);
         await _familyRepository.SaveChangesAsync();
     }
 
+    /// <summary>
+    /// Atualiza o nome da família informada.
+    /// Verifica se a família existe e se pertence ao usuário autenticado (controle de acesso).
+    /// </summary>
     public async Task<FamilyDto> UpdateFamilyAsync(Guid userId, Guid id, UpdateFamilyRequest request)
     {
+        // 1. Buscar todas as famílias associadas a este usuário
         var userFamilies = await _familyRepository.GetUserFamiliesAsync(userId);
+        
+        // 2. Garantir que a família alvo esteja associada ao usuário (segurança)
         var family = userFamilies.FirstOrDefault(f => f.Id == id);
         if (family == null)
         {
             throw new BusinessException("FAMILY_NOT_FOUND", "Família não encontrada ou você não tem permissão para acessá-la.");
         }
 
+        // 3. Atualizar e salvar o novo nome
         family.Name = request.Name;
         await _familyRepository.SaveChangesAsync();
 
@@ -165,15 +194,23 @@ public class FamilyService : IFamilyService
         };
     }
 
+    /// <summary>
+    /// Exclui permanentemente uma família informada.
+    /// Verifica se a família existe e se pertence ao usuário autenticado (controle de acesso).
+    /// </summary>
     public async Task DeleteFamilyAsync(Guid userId, Guid id)
     {
+        // 1. Obter famílias do usuário para verificar permissão
         var userFamilies = await _familyRepository.GetUserFamiliesAsync(userId);
+        
+        // 2. Garantir que a família de fato pertença ao usuário
         var family = userFamilies.FirstOrDefault(f => f.Id == id);
         if (family == null)
         {
             throw new BusinessException("FAMILY_NOT_FOUND", "Família não encontrada ou você não tem permissão para acessá-la.");
         }
 
+        // 3. Excluir a família e salvar alterações
         _familyRepository.DeleteFamily(family);
         await _familyRepository.SaveChangesAsync();
     }

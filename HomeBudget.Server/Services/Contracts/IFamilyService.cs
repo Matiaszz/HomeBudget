@@ -8,7 +8,7 @@ public interface IFamilyService
     Task<List<FamilyDto>> GetUserFamiliesAsync(Guid userId);
     Task<FamilyDto> CreateFamilyAsync(Guid userId, string familyName);
     Task<FamiliarDto> CreateFamiliarAsync(Guid familyId, CreateFamiliarRequest request);
-    Task<List<FamiliarDto>> GetFamiliarsAsync(Guid familyId);
+    Task<PagedResult<FamiliarDto>> GetFamiliarsAsync(Guid familyId, int page, int pageSize);
     Task<FamiliarDto> UpdateFamiliarAsync(Guid familyId, Guid id, UpdateFamiliarRequest request);
     Task DeleteFamiliarAsync(Guid familyId, Guid id);
     Task<FamilyDto> UpdateFamilyAsync(Guid userId, Guid id, UpdateFamilyRequest request);

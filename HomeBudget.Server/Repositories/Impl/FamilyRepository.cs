@@ -45,6 +45,20 @@ public class FamilyRepository(AppDbContext context) : IFamilyRepository
             .ToListAsync();
     }
 
+    public async Task<(List<Familiar> Items, int TotalCount)> GetFamiliarsPaginatedAsync(Guid familyId, int page, int pageSize)
+    {
+        var query = _context.Familiars.Where(f => f.FamilyId == familyId);
+        var totalCount = await query.CountAsync();
+        
+        var items = await query
+            .OrderBy(f => f.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (items, totalCount);
+    }
+
     public async Task<Family?> GetFamilyByIdAsync(Guid id)
     {
         return await _context.Families.FindAsync(id);

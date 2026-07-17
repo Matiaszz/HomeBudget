@@ -28,13 +28,16 @@ export function FamilySelectionView({
   loading,
   onLogout,
 }: FamilySelectionViewProps) {
+  // Estados para criação de nova família
   const [newFamilyName, setNewFamilyName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
 
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editName, setEditName] = useState("");
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  // Estados para controle de edição inline de uma família existente
+  const [editingId, setEditingId] = useState<string | null>(null); // Guarda o ID da família sendo editada
+  const [editName, setEditName] = useState("");                     // Guarda o nome temporário em edição
+  const [deletingId, setDeletingId] = useState<string | null>(null); // Guarda o ID da família pendente de exclusão
 
+  // Envia requisição para criar uma nova família
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newFamilyName.trim()) return;
@@ -43,6 +46,8 @@ export function FamilySelectionView({
     setIsCreating(false);
   };
 
+  // Prepara o estado para edição de uma família específica
+  // NOTA: Usa-se stopPropagation() para evitar que o clique acione a seleção da família
   const handleStartEdit = (e: React.MouseEvent, f: Family) => {
     e.stopPropagation();
     setEditingId(f.id);
@@ -50,12 +55,14 @@ export function FamilySelectionView({
     setDeletingId(null);
   };
 
+  // Cancela a edição e limpa campos temporários
   const handleCancelEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
     setEditingId(null);
     setEditName("");
   };
 
+  // Envia requisição para atualizar o nome da família sendo editada inline
   const handleUpdateSubmit = async (e: React.FormEvent, id: string) => {
     e.preventDefault();
     if (!editName.trim()) return;
@@ -64,6 +71,7 @@ export function FamilySelectionView({
     setEditName("");
   };
 
+  // Confirma a exclusão de uma família específica
   const handleDeleteConfirm = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     await onDeleteFamily(id);

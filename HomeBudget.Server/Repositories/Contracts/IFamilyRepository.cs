@@ -12,6 +12,7 @@ public interface IFamilyRepository
     Task AddFamilyAsync(Family family);
     Task AddFamiliarAsync(Familiar familiar);
     Task<List<Familiar>> GetFamiliarsAsync(Guid familyId);
+    Task<(List<Familiar> Items, int TotalCount)> GetFamiliarsPaginatedAsync(Guid familyId, int page, int pageSize);
     Task<Family?> GetFamilyByIdAsync(Guid id);
     Task<Familiar?> GetFamiliarByIdAsync(Guid id);
     void DeleteFamiliar(Familiar familiar);

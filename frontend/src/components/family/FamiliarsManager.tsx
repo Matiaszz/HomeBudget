@@ -2,12 +2,20 @@ import { useState } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Users, Plus, UserCheck, Pencil, Trash, Check, X } from "lucide-react";
+import { Users, Plus, UserCheck, Pencil, Trash, Check, X, ChevronLeft, ChevronRight } from "lucide-react";
 
 export interface Familiar {
   id: string;
   nome: string;
   idade: number;
+}
+
+export interface PagedResult<T> {
+  items: T[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
 }
 
 interface FamiliarsManagerProps {
@@ -16,6 +24,10 @@ interface FamiliarsManagerProps {
   onUpdateFamiliar: (id: string, nome: string, idade: number) => Promise<void>;
   onDeleteFamiliar: (id: string) => Promise<void>;
   loading: boolean;
+  page: number;
+  totalPages: number;
+  totalCount: number;
+  onPageChange: (page: number) => void;
 }
 
 export function FamiliarsManager({
@@ -24,16 +36,25 @@ export function FamiliarsManager({
   onUpdateFamiliar,
   onDeleteFamiliar,
   loading,
+  page,
+  totalPages,
+  totalCount,
+  onPageChange,
 }: FamiliarsManagerProps) {
+  // Estados para adição de novo familiar
   const [nome, setNome] = useState("");
   const [idade, setIdade] = useState("");
   const [isAdding, setIsAdding] = useState(false);
 
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editNome, setEditNome] = useState("");
-  const [editIdade, setEditIdade] = useState("");
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  // Estados para controle de edição inline de um familiar existente
+  const [editingId, setEditingId] = useState<string | null>(null); // Guarda o ID do familiar em edição
+  const [editNome, setEditNome] = useState("");                     // Guarda o nome temporário sendo editado
+  const [editIdade, setEditIdade] = useState("");                   // Guarda a idade temporária sendo editada
 
+  // Estado para controle de confirmação de exclusão (evita cliques acidentais)
+  const [deletingId, setDeletingId] = useState<string | null>(null); // Guarda o ID do familiar pendente de exclusão
+
+  // Envia a requisição para criação de um novo familiar
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nome.trim() || !idade) return;
@@ -45,19 +66,22 @@ export function FamiliarsManager({
     setIsAdding(false);
   };
 
+  // Prepara o estado para iniciar a edição inline de um familiar
   const handleStartEdit = (f: Familiar) => {
     setEditingId(f.id);
     setEditNome(f.nome);
     setEditIdade(f.idade.toString());
-    setDeletingId(null);
+    setDeletingId(null); // Cancela qualquer intenção de exclusão pendente
   };
 
+  // Cancela a edição e limpa os campos temporários
   const handleCancelEdit = () => {
     setEditingId(null);
     setEditNome("");
     setEditIdade("");
   };
 
+  // Envia a requisição de atualização para o familiar que está sendo editado inline
   const handleUpdate = async (e: React.FormEvent, id: string) => {
     e.preventDefault();
     if (!editNome.trim() || !editIdade) return;
@@ -67,6 +91,7 @@ export function FamiliarsManager({
     handleCancelEdit();
   };
 
+  // Envia a requisição de exclusão de um familiar e fecha o estado de exclusão pendente
   const handleDelete = async (id: string) => {
     await onDeleteFamiliar(id);
     if (deletingId === id) {
@@ -221,6 +246,38 @@ export function FamiliarsManager({
         ) : (
           <div className="text-center py-6 border border-dashed border-border rounded-xl bg-muted/10">
             <p className="text-sm font-medium text-muted-foreground">Nenhum membro cadastrado.</p>
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between pt-2 border-t border-border animate-in fade-in duration-200">
+            <span className="text-xs text-muted-foreground">
+              {totalCount} {totalCount === 1 ? "membro" : "membros"} ({page}/{totalPages})
+            </span>
+            <div className="flex items-center gap-1">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="size-7"
+                onClick={() => onPageChange(page - 1)}
+                disabled={page <= 1 || loading}
+                title="Página Anterior"
+              >
+                <ChevronLeft className="size-3.5" />
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="size-7"
+                onClick={() => onPageChange(page + 1)}
+                disabled={page >= totalPages || loading}
+                title="Próxima Página"
+              >
+                <ChevronRight className="size-3.5" />
+              </Button>
+            </div>
           </div>
         )}
 
