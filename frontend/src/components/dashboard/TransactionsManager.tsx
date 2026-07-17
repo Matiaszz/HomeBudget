@@ -59,6 +59,7 @@ interface TransactionsManagerProps {
     date: string; 
     familiarId?: string; 
   }) => Promise<void>;
+  onGoToReports: () => void;
 }
 
 // Formata um valor monetário em reais (ex: "1.500,00")
@@ -80,6 +81,7 @@ export function TransactionsManager({
   familiars,
   summary,
   onAddTransaction,
+  onGoToReports,
 }: TransactionsManagerProps) {
   // Controle de abertura do modal flutuante de transação
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -358,50 +360,26 @@ export function TransactionsManager({
             </CardContent>
           </Card>
 
-          {/* Resumo Consolidado por Pessoa */}
+          {/* Resumo Consolidado por Pessoa (Botão de atalho para a nova página de relatórios) */}
           <Card className="border-border bg-card md:col-span-2">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-semibold tracking-tight text-foreground flex items-center gap-2">
                 <Users className="size-4 text-primary" />
-                Resumo por Membro da Família
+                Totais e Gráficos por Membro
               </CardTitle>
               <CardDescription className="text-xs text-muted-foreground">
-                Visão detalhada de receitas, despesas e saldo individual de cada familiar.
+                Consulte a evolução orçamentária, filtre transações por familiar e veja gráficos em linha.
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              {(!summary.familiarSummaries || summary.familiarSummaries.length === 0) ? (
-                <p className="text-xs text-muted-foreground text-center py-4">Nenhum membro registrado.</p>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse text-xs">
-                    <thead>
-                      <tr className="border-b border-border/60 text-muted-foreground font-semibold">
-                        <th className="py-2 px-3">Membro</th>
-                        <th className="py-2 px-3 text-right">Receitas</th>
-                        <th className="py-2 px-3 text-right">Despesas</th>
-                        <th className="py-2 px-3 text-right">Saldo</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border/40">
-                      {summary.familiarSummaries.map((f) => (
-                        <tr key={f.familiarId} className="hover:bg-muted/10 transition-colors">
-                          <td className="py-2 px-3 font-medium text-foreground">{f.familiarName}</td>
-                          <td className="py-2 px-3 text-right text-emerald-650 font-medium">
-                            {(f.totalIncome / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                          </td>
-                          <td className="py-2 px-3 text-right text-foreground">
-                            {(f.totalExpense / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                          </td>
-                          <td className={`py-2 px-3 text-right font-bold ${f.netBalance >= 0 ? "text-emerald-700" : "text-destructive"}`}>
-                            {(f.netBalance / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+            <CardContent className="pt-2">
+              <Button
+                type="button"
+                onClick={onGoToReports}
+                className="w-full flex items-center justify-center gap-2 cursor-pointer py-4 text-xs font-semibold border border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary transition-all rounded-lg"
+              >
+                <BarChart3 className="size-4" />
+                Acessar Filtros e Totais por Membro
+              </Button>
             </CardContent>
           </Card>
 

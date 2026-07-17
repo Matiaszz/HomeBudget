@@ -23,7 +23,6 @@ builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
 
 var dbConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-Console.WriteLine($"Connection: {dbConnectionString}");
 
 builder.Services.AddDbContext<AppDbContext>(
     opt => opt.UseNpgsql(

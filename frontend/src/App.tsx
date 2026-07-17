@@ -18,6 +18,7 @@ import { TransactionsManager, type Transaction, type UserDto } from "@/component
 import { FamilySelectionView } from "@/components/family/FamilySelectionView";
 import { FamiliarsManager, type Familiar, type PagedResult } from "@/components/family/FamiliarsManager";
 import { FormField } from "@/components/auth/FormField";
+import { FamiliarReports } from "@/components/dashboard/FamiliarReports";
 
 interface LoginResponse {
   token: string;
@@ -28,6 +29,67 @@ interface Family {
   id: string;
   name: string;
 }
+
+const recalculateSummary = (txs: Transaction[]) => {
+  const totalIncome = txs.filter(t => t.type === "income").reduce((sum, t) => sum + t.amount, 0);
+  const totalExpense = txs.filter(t => t.type === "expense").reduce((sum, t) => sum + t.amount, 0);
+  const netBalance = totalIncome - totalExpense;
+
+  const familiarExpensesMap = new Map<string, { name: string; total: number }>();
+  const categoryExpensesMap = new Map<string, number>();
+  const familiarSummariesMap = new Map<string, { name: string; income: number; expense: number }>();
+
+  txs.forEach(t => {
+    const fid = t.familiarId || "unknown";
+    const fname = t.familiarName || "Desconhecido";
+    
+    if (t.type === "expense") {
+      categoryExpensesMap.set(t.category, (categoryExpensesMap.get(t.category) || 0) + t.amount);
+      if (t.familiarId) {
+        const current = familiarExpensesMap.get(fid) || { name: fname, total: 0 };
+        familiarExpensesMap.set(fid, { name: fname, total: current.total + t.amount });
+      }
+    }
+
+    if (t.familiarId) {
+      const current = familiarSummariesMap.get(fid) || { name: fname, income: 0, expense: 0 };
+      if (t.type === "income") {
+        current.income += t.amount;
+      } else {
+        current.expense += t.amount;
+      }
+      familiarSummariesMap.set(fid, current);
+    }
+  });
+
+  const familiarExpenses = Array.from(familiarExpensesMap.entries()).map(([id, data]) => ({
+    familiarId: id,
+    familiarName: data.name,
+    totalExpense: data.total
+  }));
+
+  const categoryExpenses = Array.from(categoryExpensesMap.entries()).map(([cat, total]) => ({
+    category: cat,
+    totalAmount: total
+  }));
+
+  const familiarSummaries = Array.from(familiarSummariesMap.entries()).map(([id, data]) => ({
+    familiarId: id,
+    familiarName: data.name,
+    totalIncome: data.income,
+    totalExpense: data.expense,
+    netBalance: data.income - data.expense
+  }));
+
+  return {
+    totalIncome,
+    totalExpense,
+    netBalance,
+    familiarExpenses,
+    categoryExpenses,
+    familiarSummaries
+  };
+};
 
 export default function App() {
   // Authentication states
@@ -64,7 +126,7 @@ export default function App() {
   const [success, setSuccess] = useState<string | null>(null);
 
   // Tab and profile form states
-  const [activeTab, setActiveTab] = useState<"dashboard" | "profile">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "profile" | "reports">("dashboard");
   const [profileName, setProfileName] = useState("");
   const [profileEmail, setProfileEmail] = useState("");
   const [profileBirthdate, setProfileBirthdate] = useState("");
@@ -425,6 +487,11 @@ export default function App() {
       const isOnlyItem = familiars.length === 1 && familiarsPage > 1;
       const targetPage = isOnlyItem ? familiarsPage - 1 : familiarsPage;
       await fetchFamiliars(selectedFamily.id, targetPage);
+
+      // Recalcula transações e budgetSummary localmente sem chamar o backend
+      const updatedTransactions = transactions.filter(t => t.familiarId !== id);
+      setTransactions(updatedTransactions);
+      setBudgetSummary(recalculateSummary(updatedTransactions));
     } catch (err) {
       if (err instanceof ApiError) {
         setError(getFriendlyErrorMessage(err.errorCode, err.errorMessage));
@@ -804,6 +871,19 @@ export default function App() {
               </button>
               <button
                 type="button"
+                onClick={() => setActiveTab("reports")}
+                className={`pb-3 px-4 text-sm font-medium transition-all relative cursor-pointer focus-visible:outline-none ${activeTab === "reports"
+                  ? "text-foreground font-semibold"
+                  : "text-muted-foreground hover:text-foreground"
+                  }`}
+              >
+                Relatórios por Membro
+                {activeTab === "reports" && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary animate-in fade-in duration-200" />
+                )}
+              </button>
+              <button
+                type="button"
                 onClick={() => setActiveTab("profile")}
                 className={`pb-3 px-4 text-sm font-medium transition-all relative cursor-pointer focus-visible:outline-none ${activeTab === "profile"
                   ? "text-foreground font-semibold"
@@ -845,9 +925,21 @@ export default function App() {
                   familiars={familiars}
                   summary={budgetSummary}
                   onAddTransaction={handleAddTransaction}
+                  onGoToReports={() => setActiveTab("reports")}
                 />
               </div>
 
+            </div>
+          )}
+
+          {/* VIEW: REPORTS */}
+          {user && activeTab === "reports" && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+              <FamiliarReports
+                familiars={familiars}
+                transactions={transactions}
+                onBackToDashboard={() => setActiveTab("dashboard")}
+              />
             </div>
           )}
 
