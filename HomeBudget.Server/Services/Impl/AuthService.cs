@@ -13,12 +13,20 @@ using HomeBudget.Server.Services.Contracts;
 
 namespace HomeBudget.Server.Services.Impl;
 
+/// <summary>
+/// Serviço responsável pelas regras de negócio de autenticação: registro de usuários, login e geração de JWT.
+/// </summary>
 public class AuthService(IUserRepository userRepository, IConfiguration configuration) : IAuthService
 {
     private readonly IUserRepository _userRepository = userRepository;
     private readonly IConfiguration _configuration = configuration;
-    private readonly PasswordHasher<User> _passwordHasher = new();
+    private readonly PasswordHasher<User> _passwordHasher = new(); // Utilitário do ASP.NET Core Identity para hash de senhas seguro
 
+    /// <summary>
+    /// Realiza o registro de um novo usuário após validações de e-mail e idade mínima de 18 anos.
+    /// </summary>
+    /// <param name="request">Dados de cadastro do usuário.</param>
+    /// <returns>O DTO do usuário cadastrado.</returns>
     public async Task<UserDto> RegisterAsync(RegisterRequest request)
     {
         // 1. Verificar se o e-mail já existe
@@ -66,6 +74,11 @@ public class AuthService(IUserRepository userRepository, IConfiguration configur
         };
     }
 
+    /// <summary>
+    /// Realiza a autenticação de login validando hash de senha e retornando JWT assinado.
+    /// </summary>
+    /// <param name="request">Credenciais de login (e-mail e senha).</param>
+    /// <returns>A resposta com o token JWT e dados do usuário.</returns>
     public async Task<LoginResponse> LoginAsync(LoginRequest request)
     {
         // 1. Procurar o usuário pelo e-mail
@@ -99,6 +112,11 @@ public class AuthService(IUserRepository userRepository, IConfiguration configur
         };
     }
 
+    /// <summary>
+    /// Geração do token JWT contendo claims básicas do usuário logado.
+    /// </summary>
+    /// <param name="user">Entidade de usuário ativa.</param>
+    /// <returns>Uma string representando o token JWT encriptado.</returns>
     private string GenerateJwtToken(User user)
     {
         var jwtSettings = _configuration.GetSection("Jwt");

@@ -8,6 +8,7 @@ using HomeBudget.Server.Services.Contracts;
 
 namespace HomeBudget.Server.Controllers;
 
+// Controlador responsável pelas ações de autenticação (Cadastro e Login)
 [ApiController]
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
@@ -19,6 +20,7 @@ public class AuthController : ControllerBase
         _authService = authService;
     }
 
+    // Endpoint POST: api/auth/register - Registra um novo usuário no sistema
     [HttpPost("register")]
     public async Task<ActionResult<ApiResponse<UserDto>>> Register(RegisterRequest request)
     {
@@ -26,6 +28,7 @@ public class AuthController : ControllerBase
         return Ok(ApiResponse<UserDto>.Ok(result));
     }
 
+    // Endpoint POST: api/auth/login - Realiza login de usuário retornando token JWT e seus dados
     [HttpPost("login")]
     public async Task<ActionResult<ApiResponse<LoginResponse>>> Login(LoginRequest request)
     {

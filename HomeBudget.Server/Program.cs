@@ -8,6 +8,7 @@ using HomeBudget.Server.Repositories;
 using HomeBudget.Server.Services.Contracts;
 using HomeBudget.Server.Services.Impl;
 using HomeBudget.Server.Middleware;
+using HomeBudget.Server.Repositories.Impl;
 
 var builder = WebApplication.CreateBuilder(args);
 

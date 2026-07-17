@@ -41,9 +41,7 @@ public class FamiliesController : ControllerBase
         return Ok(ApiResponse<FamilyDto>.Ok(result));
     }
 
-    /// <summary>
-    /// Atualiza o nome de uma família pertencente ao usuário.
-    /// </summary>
+    // Edita o nome de uma família (apenas se pertencer ao usuário autenticado)
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<ApiResponse<FamilyDto>>> UpdateFamily(Guid id, UpdateFamilyRequest request)
     {
@@ -52,9 +50,7 @@ public class FamiliesController : ControllerBase
         return Ok(ApiResponse<FamilyDto>.Ok(result));
     }
 
-    /// <summary>
-    /// Exclui uma família pertencente ao usuário.
-    /// </summary>
+    // Exclui uma família (apenas se pertencer ao usuário autenticado)
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult<ApiResponse>> DeleteFamily(Guid id)
     {
@@ -63,6 +59,7 @@ public class FamiliesController : ControllerBase
         return Ok(ApiResponse.Ok());
     }
 
+    // Cria um novo membro (familiar) associado à família
     [HttpPost("{familyId:guid}/familiars")]
     public async Task<ActionResult<ApiResponse<FamiliarDto>>> CreateFamiliar(Guid familyId, CreateFamiliarRequest request)
     {
@@ -70,6 +67,7 @@ public class FamiliesController : ControllerBase
         return Ok(ApiResponse<FamiliarDto>.Ok(result));
     }
 
+    // Obtém a lista paginada de familiares cadastrados na família
     [HttpGet("{familyId:guid}/familiars")]
     public async Task<ActionResult<ApiResponse<PagedResult<FamiliarDto>>>> GetFamiliars(
         Guid familyId,
@@ -80,9 +78,7 @@ public class FamiliesController : ControllerBase
         return Ok(ApiResponse<PagedResult<FamiliarDto>>.Ok(result));
     }
 
-    /// <summary>
-    /// Atualiza os dados (nome, idade) de um familiar específico associado a uma família.
-    /// </summary>
+    // Edita os dados de um familiar existente
     [HttpPut("{familyId:guid}/familiars/{id:guid}")]
     public async Task<ActionResult<ApiResponse<FamiliarDto>>> UpdateFamiliar(Guid familyId, Guid id, UpdateFamiliarRequest request)
     {
@@ -90,9 +86,7 @@ public class FamiliesController : ControllerBase
         return Ok(ApiResponse<FamiliarDto>.Ok(result));
     }
 
-    /// <summary>
-    /// Exclui um familiar específico associado a uma família.
-    /// </summary>
+    // Exclui um familiar específico da família
     [HttpDelete("{familyId:guid}/familiars/{id:guid}")]
     public async Task<ActionResult<ApiResponse>> DeleteFamiliar(Guid familyId, Guid id)
     {

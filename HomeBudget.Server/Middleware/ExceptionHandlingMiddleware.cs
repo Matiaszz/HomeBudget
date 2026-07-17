@@ -10,7 +10,6 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
 {
     private readonly RequestDelegate _next = next;
     private readonly ILogger<ExceptionHandlingMiddleware> _logger = logger;
-
     public async Task InvokeAsync(HttpContext context)
     {
         try

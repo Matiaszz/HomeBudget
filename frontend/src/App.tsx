@@ -705,7 +705,7 @@ export default function App() {
               <div className="mb-6 p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-850 flex items-start gap-3 text-sm animate-in fade-in slide-in-from-top-2 duration-300">
                 <CheckCircle2 className="size-5 shrink-0 text-emerald-600 mt-0.5" />
                 <div>
-                  <span className="font-semibold text-emerald-955 font-medium">Sucesso!</span>
+                  <span className="text-emerald-955 font-medium">Sucesso!</span>
                   <p className="mt-0.5">{success}</p>
                 </div>
               </div>

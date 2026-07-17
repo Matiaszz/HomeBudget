@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using HomeBudget.Server.Data;
 using HomeBudget.Server.Models;
 
-namespace HomeBudget.Server.Repositories;
+namespace HomeBudget.Server.Repositories.Impl;
 
 public class FamilyRepository(AppDbContext context) : IFamilyRepository
 {
@@ -38,18 +38,12 @@ public class FamilyRepository(AppDbContext context) : IFamilyRepository
         await _context.Familiars.AddAsync(familiar);
     }
 
-    public async Task<List<Familiar>> GetFamiliarsAsync(Guid familyId)
-    {
-        return await _context.Familiars
-            .Where(f => f.FamilyId == familyId)
-            .ToListAsync();
-    }
-
+    // Busca a lista paginada de familiares da família e calcula o total geral
     public async Task<(List<Familiar> Items, int TotalCount)> GetFamiliarsPaginatedAsync(Guid familyId, int page, int pageSize)
     {
         var query = _context.Familiars.Where(f => f.FamilyId == familyId);
         var totalCount = await query.CountAsync();
-        
+
         var items = await query
             .OrderBy(f => f.Name)
             .Skip((page - 1) * pageSize)
@@ -59,26 +53,31 @@ public class FamilyRepository(AppDbContext context) : IFamilyRepository
         return (items, totalCount);
     }
 
+    // Busca uma família pelo ID
     public async Task<Family?> GetFamilyByIdAsync(Guid id)
     {
         return await _context.Families.FindAsync(id);
     }
 
+    // Busca um familiar pelo ID
     public async Task<Familiar?> GetFamiliarByIdAsync(Guid id)
     {
         return await _context.Familiars.FindAsync(id);
     }
 
+    // Marca um familiar para ser excluído do banco de dados
     public void DeleteFamiliar(Familiar familiar)
     {
         _context.Familiars.Remove(familiar);
     }
 
+    // Marca uma família para ser excluída do banco de dados
     public void DeleteFamily(Family family)
     {
         _context.Families.Remove(family);
     }
 
+    // Grava todas as alterações pendentes no banco de dados (EF Core unit of work)
     public async Task SaveChangesAsync()
     {
         await _context.SaveChangesAsync();
