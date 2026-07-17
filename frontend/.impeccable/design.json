@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-16T15:45:00Z",
+  "title": "Design System: HomeBudget",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Charcoal Primary",
+        "canonical": "oklch(0.205 0 0)",
+        "tonalRamp": ["#121212", "#1e1e1e", "#2a2a2a", "#343434", "#5a5a5a", "#8a8a8a", "#c5c5c5", "#f5f5f5"]
+      },
+      "neutral-bg": {
+        "role": "neutral",
+        "displayName": "Pure Chalk Background",
+        "canonical": "oklch(1 0 0)",
+        "tonalRamp": ["#ffffff", "#fcfcfc", "#f7f7f7", "#ebebeb", "#dcdcdc", "#b0b0b0", "#707070", "#303030"]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Slate Gray Border",
+        "canonical": "oklch(0.922 0 0)",
+        "tonalRamp": ["#ffffff", "#f7f7f7", "#ebebeb", "#dcdcdc", "#c0c0c0", "#909090", "#505050", "#202020"]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Off-White Muted",
+        "canonical": "oklch(0.97 0 0)",
+        "tonalRamp": ["#ffffff", "#fbfbfb", "#f7f7f7", "#ebebeb", "#d5d5d5", "#a0a0a0", "#606060", "#252525"]
+      },
+      "destructive": {
+        "role": "destructive",
+        "displayName": "Crimson Destructive",
+        "canonical": "oklch(0.577 0.245 27.325)",
+        "tonalRamp": ["#450a0a", "#7f1d1d", "#991b1b", "#b91c1c", "#dc2626", "#ef4444", "#f87171", "#fca5a5"]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Hero and landing headings only."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Primary readable text copy."
+      }
+    },
+    "shadows": [
+      {
+        "name": "focus",
+        "value": "0 0 0 3px rgba(52, 52, 52, 0.5)",
+        "purpose": "Default keyboard focus glow."
+      }
+    ],
+    "motion": [
+      {
+        "name": "transition-standard",
+        "value": "all 150ms cubic-bezier(0.4, 0, 0.2, 1)",
+        "purpose": "Default state transition easing."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Primary action button, used for forms and logins.",
+      "html": "<button class=\"ds-btn-primary\">ENTRAR</button>",
+      "css": ".ds-btn-primary { background: #343434; color: #ffffff; padding: 8px 10px; border-radius: 8px; border: none; font-size: 14px; font-weight: 500; font-family: 'Geist Variable', sans-serif; cursor: pointer; transition: background 0.15s ease; } .ds-btn-primary:hover { background: #4a4a4a; } .ds-btn-primary:focus-visible { outline: 2px solid #343434; outline-offset: 2px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Secondary action button, used for cancellations and redirects.",
+      "html": "<button class=\"ds-btn-secondary\">Cadastre-se</button>",
+      "css": ".ds-btn-secondary { background: #f7f7f7; color: #343434; padding: 8px 10px; border-radius: 8px; border: none; font-size: 14px; font-weight: 500; font-family: 'Geist Variable', sans-serif; cursor: pointer; transition: background 0.15s ease; } .ds-btn-secondary:hover { background: #ebebeb; } .ds-btn-secondary:focus-visible { outline: 2px solid #343434; outline-offset: 2px; }"
+    },
+    {
+      "name": "Form Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Standard text input field for forms.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"seuemail@exemplo.com\" />",
+      "css": ".ds-input { background: transparent; color: #343434; border: 1px solid #ebebeb; border-radius: 8px; padding: 4px 10px; font-size: 14px; font-family: 'Geist Variable', sans-serif; outline: none; width: 100%; box-sizing: border-box; transition: border-color 0.15s ease, box-shadow 0.15s ease; } .ds-input:focus { border-color: #343434; box-shadow: 0 0 0 3px rgba(52, 52, 52, 0.2); } .ds-input::placeholder { color: #8e8e8e; }"
+    },
+    {
+      "name": "Dashboard Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Standard information card container.",
+      "html": "<div class=\"ds-card\"><h3 class=\"ds-card-title\">Perfil do Usuário</h3><p class=\"ds-card-content\">Dados cadastrados e validações.</p></div>",
+      "css": ".ds-card { background: #ffffff; border: 1px solid #ebebeb; border-radius: 12px; padding: 16px; font-family: 'Geist Variable', sans-serif; } .ds-card-title { font-size: 16px; font-weight: 500; color: #343434; margin: 0 0 8px 0; } .ds-card-content { font-size: 14px; color: #8e8e8e; margin: 0; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Calm Ledger",
+    "overview": "The Calm Ledger is a visual framework designed to bring clarity, peace of mind, and grounding stability to personal finance. Financial management can often feel overwhelming; this system rejects the typical high-stress visual tropes of trading platforms and cluttered banking portals. Instead, it relies on generous white space, clear typographical contrast, and structured neutral containers to create an atmosphere of order and simplicity.",
+    "keyCharacteristics": [
+      "Restrained color application to highlight actionable areas.",
+      "Strong, grounding sans-serif typography for maximum readability.",
+      "Consistent 1px borders and flat surfaces to create clean divisions.",
+      "Intentional focus rings and subtle hover feedback to build trust."
+    ],
+    "rules": [
+      {
+        "name": "The 10% Accent Rule",
+        "body": "Colored accents (like validation success states or error flags) must occupy less than 10% of any viewport. Neutral grays and white space must carry the layout, making any color callout highly functional.",
+        "section": "colors"
+      },
+      {
+        "name": "The Balance Rule",
+        "body": "Display and headline components must use text-wrap: balance to prevent awkward orphaned words and maintain even layout heights on multi-line text block boundaries.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-By-Default Rule",
+        "body": "All cards, inputs, and layout blocks are flat at rest. A shadow is only allowed on temporary floating surfaces (such as dropdowns or tooltips) or as an active response to focus states.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do cap body line length to 65–75ch for comfortable reading.",
+      "Do use text-wrap: balance on all page headers to maintain layout symmetry.",
+      "Do ensure contrast of body text is at least 4.5:1 against the neutral background.",
+      "Do use native dialogs or explicit stacking contexts for dropdowns and overlays."
+    ],
+    "donts": [
+      "Don't use border-left or border-right greater than 1px as a colored accent stripe.",
+      "Don't use text gradients (using background-clip: text) for page headings.",
+      "Don't use glassmorphic blur effects as a default styling layer for cards.",
+      "Don't use the hero-metric template (huge number, small label, gradient details) for financial summaries.",
+      "Don't create identical card grids with icon + heading + paragraph repeated endlessly.",
+      "Don't add tiny tracked uppercase eyebrows above every page section.",
+      "Don't add sequential numbering section indicators (e.g., 01, 02) to standard dashboards.",
+      "Don't use dark mode with purple gradients, neon accents, or glassmorphism."
+    ]
+  }
+}

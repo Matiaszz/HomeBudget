@@ -6,7 +6,7 @@ Antes de começar, você precisará ter instalado em sua máquina:
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 - [Node.js](https://nodejs.org/) (versão LTS recomendada)
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) ou Podman
+- [PostgreSQL](https://www.postgresql.org/download/)
 - Workload do .NET Aspire. Instale usando o comando no terminal:
   ```bash
   dotnet workload install aspire
@@ -43,15 +43,7 @@ cd frontend
 npm install
 ```
 
-### 2. Subir o Banco de Dados (PostgreSQL)
-
-Na raiz do projeto, inicie o container do banco de dados:
-
-```bash
-docker compose up -d
-```
-
-### 3. Executar a Aplicação (via .NET Aspire)
+### 2. Executar a Aplicação (via .NET Aspire)
 
 Para iniciar tanto a API backend quanto o frontend orquestrados pelo Aspire, execute o comando a partir da raiz do projeto:
 
