@@ -37,17 +37,24 @@ public class TransactionService(
         }
 
         // 2. Validar se o familiar informado pertence à família
-        if (request.FamiliarId.HasValue)
+        if (!request.FamiliarId.HasValue)
         {
-            var familiarObj = await _familyRepository.GetFamiliarByIdAsync(request.FamiliarId.Value);
-            if (familiarObj == null || familiarObj.FamilyId != familyId)
-            {
-                throw new BusinessException("FAMILIAR_NOT_FOUND", "Familiar não encontrado ou não pertence a esta família.");
-            }
+            throw new BusinessException("FAMILIAR_REQUIRED", "O familiar responsável é obrigatório.");
         }
 
-        // 3. Validar se a data da transação é futura
-        if (request.Date.Date > DateTime.Today)
+        var familiarObj = await _familyRepository.GetFamiliarByIdAsync(request.FamiliarId.Value);
+        if (familiarObj == null || familiarObj.FamilyId != familyId)
+        {
+            throw new BusinessException("FAMILIAR_NOT_FOUND", "Familiar não encontrado ou não pertence a esta família.");
+        }
+
+        if (request.Type == "income" && familiarObj.CalculateAge() < 18)
+        {
+            throw new BusinessException("FAMILIAR_UNDERAGE", "O responsável por uma receita deve ter 18 anos ou mais.");
+        }
+
+        // 3. Validar se a data da transação é futura (com tolerância de 1 dia para diferenças de fuso horário)
+        if (request.Date.Date > DateTime.Today.AddDays(1))
         {
             throw new BusinessException("INVALID_DATE", "A data da transação não pode ser posterior a hoje.");
         }

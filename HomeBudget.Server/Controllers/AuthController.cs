@@ -8,14 +8,20 @@ using HomeBudget.Server.Services.Contracts;
 
 namespace HomeBudget.Server.Controllers;
 
-// Controlador responsável pelas ações de autenticação (Cadastro e Login)
+/// <summary>
+/// Controlador responsável pelas ações de autenticação (Cadastro e Login).
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 public class AuthController(IAuthService authService) : ControllerBase
 {
     private readonly IAuthService _authService = authService;
 
-    // Endpoint POST: api/auth/register - Registra um novo usuário no sistema
+    /// <summary>
+    /// Endpoint POST: api/auth/register - Registra um novo usuário no sistema após validações.
+    /// </summary>
+    /// <param name="request">Dados para cadastro do novo usuário.</param>
+    /// <returns>O DTO do usuário cadastrado.</returns>
     [HttpPost("register")]
     public async Task<ActionResult<ApiResponse<UserDto>>> Register(RegisterRequest request)
     {
@@ -23,7 +29,11 @@ public class AuthController(IAuthService authService) : ControllerBase
         return Ok(ApiResponse<UserDto>.Ok(result));
     }
 
-    // Endpoint POST: api/auth/login - Realiza login de usuário retornando token JWT e seus dados
+    /// <summary>
+    /// Endpoint POST: api/auth/login - Realiza a autenticação do usuário retornando o token JWT e seus dados.
+    /// </summary>
+    /// <param name="request">Credenciais de login contendo e-mail e senha.</param>
+    /// <returns>A resposta de login contendo o token de acesso e os dados básicos do usuário.</returns>
     [HttpPost("login")]
     public async Task<ActionResult<ApiResponse<LoginResponse>>> Login(LoginRequest request)
     {

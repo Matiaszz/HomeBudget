@@ -12,6 +12,7 @@ import {
   PieChart,
   BarChart3,
   User,
+  Users,
   ChevronDown,
   ShieldAlert
 } from "lucide-react";
@@ -48,6 +49,7 @@ interface TransactionsManagerProps {
     netBalance: number;
     familiarExpenses: { familiarId: string; familiarName: string; totalExpense: number }[];
     categoryExpenses: { category: string; totalAmount: number }[];
+    familiarSummaries: { familiarId: string; familiarName: string; totalIncome: number; totalExpense: number; netBalance: number }[];
   } | null;
   onAddTransaction: (tx: { 
     description: string; 
@@ -82,19 +84,27 @@ export function TransactionsManager({
   // Controle de abertura do modal flutuante de transação
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Helper local para obter data local em YYYY-MM-DD
+  const getLocalDateString = (d = new Date()) => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const todayStr = getLocalDateString();
+
   // Estados do formulário de transação
   const [txDescription, setTxDescription] = useState("");
   const [txAmountDisplay, setTxAmountDisplay] = useState(""); // Valor formatado para exibição
   const [txAmountCents, setTxAmountCents] = useState(0);      // Valor em centavos para envio
   const [txType, setTxType] = useState<"income" | "expense">("expense");
   const [txCategory, setTxCategory] = useState("Alimentação");
-  const [txDate, setTxDate] = useState(new Date().toISOString().split("T")[0]);
+  const [txDate, setTxDate] = useState(todayStr);
   const [txFamiliarId, setTxFamiliarId] = useState("");
 
   // Estado de erro inline do formulário (substitui alert())
   const [formError, setFormError] = useState<string | null>(null);
-
-  const todayStr = new Date().toISOString().split("T")[0];
 
   // Handler de input do valor monetário com formatação automática
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -130,10 +140,21 @@ export function TransactionsManager({
 
     const finalType = user.canHaveIncome ? txType : "expense";
 
-    // Para despesas, o familiar é obrigatório. Para receitas, é opcional.
-    if (finalType === "expense" && !txFamiliarId) {
-      setFormError("Selecione o familiar responsável pela despesa.");
+    // O familiar é obrigatório para todas as transações.
+    if (!txFamiliarId) {
+      setFormError(finalType === "income" 
+        ? "Selecione o familiar responsável pela receita." 
+        : "Selecione o familiar responsável pela despesa.");
       return;
+    }
+
+    // Validação extra de idade no frontend para receitas
+    if (finalType === "income") {
+      const selectedFam = familiars.find(f => f.id === txFamiliarId);
+      if (selectedFam && selectedFam.age < 18) {
+        setFormError("O responsável por uma receita deve ter 18 anos ou mais.");
+        return;
+      }
     }
 
     await onAddTransaction({
@@ -142,7 +163,7 @@ export function TransactionsManager({
       type: finalType,
       category: txCategory,
       date: txDate,
-      familiarId: txFamiliarId || undefined
+      familiarId: txFamiliarId
     });
 
     // Limpa os campos do formulário
@@ -201,11 +222,14 @@ export function TransactionsManager({
     }
   };
 
-  // Controla a mudança de tipo de transação e limpa familiar se mudar para receita (opcional)
+  // Controla a mudança de tipo de transação e limpa familiar se não cumprir a idade mínima
   const handleTypeChange = (type: "income" | "expense") => {
     setTxType(type);
-    if (type === "income") {
-      setTxFamiliarId(""); // Para receita, familiar é opcional — limpa a seleção obrigatória
+    if (type === "income" && txFamiliarId) {
+      const selectedFam = familiars.find(f => f.id === txFamiliarId);
+      if (selectedFam && selectedFam.age < 18) {
+        setTxFamiliarId(""); // Se for menor de 18, limpa a seleção
+      }
     }
   };
 
@@ -330,6 +354,53 @@ export function TransactionsManager({
                       </div>
                     );
                   })
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Resumo Consolidado por Pessoa */}
+          <Card className="border-border bg-card md:col-span-2">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold tracking-tight text-foreground flex items-center gap-2">
+                <Users className="size-4 text-primary" />
+                Resumo por Membro da Família
+              </CardTitle>
+              <CardDescription className="text-xs text-muted-foreground">
+                Visão detalhada de receitas, despesas e saldo individual de cada familiar.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {(!summary.familiarSummaries || summary.familiarSummaries.length === 0) ? (
+                <p className="text-xs text-muted-foreground text-center py-4">Nenhum membro registrado.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="border-b border-border/60 text-muted-foreground font-semibold">
+                        <th className="py-2 px-3">Membro</th>
+                        <th className="py-2 px-3 text-right">Receitas</th>
+                        <th className="py-2 px-3 text-right">Despesas</th>
+                        <th className="py-2 px-3 text-right">Saldo</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/40">
+                      {summary.familiarSummaries.map((f) => (
+                        <tr key={f.familiarId} className="hover:bg-muted/10 transition-colors">
+                          <td className="py-2 px-3 font-medium text-foreground">{f.familiarName}</td>
+                          <td className="py-2 px-3 text-right text-emerald-650 font-medium">
+                            {(f.totalIncome / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                          </td>
+                          <td className="py-2 px-3 text-right text-foreground">
+                            {(f.totalExpense / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                          </td>
+                          <td className={`py-2 px-3 text-right font-bold ${f.netBalance >= 0 ? "text-emerald-700" : "text-destructive"}`}>
+                            {(f.netBalance / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -495,34 +566,30 @@ export function TransactionsManager({
                   </div>
                 </div>
 
-                {/* Familiar (obrigatório para Despesa, opcional para Receita) */}
+                {/* Familiar (obrigatório para Despesa e Receita) */}
                 <div className="space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
                   <Label htmlFor="tx-familiar">
                     Familiar
-                    {(user.canHaveIncome ? txType : "expense") === "expense" ? (
-                      <span className="text-destructive ml-1">*</span>
-                    ) : (
-                      <span className="text-muted-foreground text-[10px] ml-1">(opcional)</span>
-                    )}
+                    <span className="text-destructive ml-1">*</span>
                   </Label>
                   <div className="relative">
                     <select
                       id="tx-familiar"
                       value={txFamiliarId}
                       onChange={(e) => setTxFamiliarId(e.target.value)}
-                      required={(user.canHaveIncome ? txType : "expense") === "expense"}
+                      required
                       className="h-9 w-full rounded-lg border bg-transparent pl-3 pr-8 py-1 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 transition-all appearance-none cursor-pointer"
                     >
                       <option value="" className="text-muted-foreground">
-                        {(user.canHaveIncome ? txType : "expense") === "expense"
-                          ? "Selecione o familiar responsável..."
-                          : "Selecione o familiar (opcional)..."}
+                        Selecione o familiar responsável...
                       </option>
-                      {familiars.map((familiar) => (
-                        <option key={familiar.id} value={familiar.id} className="text-foreground bg-card">
-                          {familiar.name}
-                        </option>
-                      ))}
+                      {familiars
+                        .filter((familiar) => txType === "expense" || familiar.age >= 18)
+                        .map((familiar) => (
+                          <option key={familiar.id} value={familiar.id} className="text-foreground bg-card">
+                            {familiar.name}
+                          </option>
+                        ))}
                     </select>
                     <div className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-muted-foreground">
                       <ChevronDown className="size-4" />

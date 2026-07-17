@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace HomeBudget.Server.Models.Responses;
 
 /// <summary>
-/// DTO representando os gastos consolidados de um familiar específico.
+/// DTO representando os gastos de um familiar específico.
 /// </summary>
 public class FamiliarExpenseDto
 {
@@ -25,7 +25,7 @@ public class FamiliarExpenseDto
 }
 
 /// <summary>
-/// DTO representando os gastos consolidados por categoria.
+/// DTO representando os gastos por categoria.
 /// </summary>
 public class CategoryExpenseDto
 {
@@ -69,4 +69,40 @@ public class FamilyBudgetSummaryDto
     /// Consolidação de despesas categorizadas (para gráfico de pizza/donut).
     /// </summary>
     public List<CategoryExpenseDto> CategoryExpenses { get; set; } = [];
+
+    /// <summary>
+    /// Consolidação de totais por pessoa (receita, despesa e saldo).
+    /// </summary>
+    public List<FamiliarSummaryDto> FamiliarSummaries { get; set; } = [];
+}
+
+/// <summary>
+/// DTO representando o resumo financeiro individual de um familiar.
+/// </summary>
+public class FamiliarSummaryDto
+{
+    /// <summary>
+    /// Identificador do familiar.
+    /// </summary>
+    public Guid FamiliarId { get; set; }
+
+    /// <summary>
+    /// Nome do familiar.
+    /// </summary>
+    public string FamiliarName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Total de receitas recebidas pelo familiar em centavos.
+    /// </summary>
+    public long TotalIncome { get; set; }
+
+    /// <summary>
+    /// Total de despesas pagas pelo familiar em centavos.
+    /// </summary>
+    public long TotalExpense { get; set; }
+
+    /// <summary>
+    /// Saldo líquido do familiar em centavos (Receitas - Despesas).
+    /// </summary>
+    public long NetBalance => TotalIncome - TotalExpense;
 }

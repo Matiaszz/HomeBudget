@@ -7,8 +7,6 @@ var server = builder.AddProject<Projects.HomeBudget_Server>("server")
     .WithExternalHttpEndpoints();
 
 
-builder.AddPostgres("postgres");
-
 var webfrontend = builder.AddViteApp("webfrontend", "../frontend")
     .WithReference(server)
     .WaitFor(server);

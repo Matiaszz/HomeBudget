@@ -31,14 +31,21 @@ interface FamiliarsManagerProps {
   onPageChange: (page: number) => void;
 }
 
-// Maximum allowed birthdate = today
-const todayStr = new Date().toISOString().split("T")[0];
+// Maximum allowed birthdate = today (local time)
+const getLocalDateString = (d = new Date()) => {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const todayStr = getLocalDateString();
 
 // Minimum allowed birthdate = 150 years ago
 const minBirthdateStr = (() => {
   const d = new Date();
   d.setFullYear(d.getFullYear() - 150);
-  return d.toISOString().split("T")[0];
+  return getLocalDateString(d);
 })();
 
 export function FamiliarsManager({

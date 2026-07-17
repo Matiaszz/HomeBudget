@@ -13,6 +13,9 @@ using HomeBudget.Server.Services.Contracts;
 
 namespace HomeBudget.Server.Controllers;
 
+/// <summary>
+/// Controlador responsável pelas operações de gestão de famílias e membros familiares.
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
@@ -20,6 +23,10 @@ public class FamiliesController(IFamilyService familyService) : ControllerBase
 {
     private readonly IFamilyService _familyService = familyService;
 
+    /// <summary>
+    /// Obtém todas as famílias associadas ao usuário autenticado.
+    /// </summary>
+    /// <returns>Uma lista de DTOs contendo as famílias encontradas.</returns>
     [HttpGet]
     public async Task<ActionResult<ApiResponse<List<FamilyDto>>>> GetUserFamilies()
     {
@@ -28,6 +35,11 @@ public class FamiliesController(IFamilyService familyService) : ControllerBase
         return Ok(ApiResponse<List<FamilyDto>>.Ok(result));
     }
 
+    /// <summary>
+    /// Cria uma nova família vinculada ao usuário autenticado.
+    /// </summary>
+    /// <param name="request">Dados de criação da família (nome).</param>
+    /// <returns>O DTO da família criada.</returns>
     [HttpPost]
     public async Task<ActionResult<ApiResponse<FamilyDto>>> CreateFamily(CreateFamilyRequest request)
     {
@@ -36,7 +48,12 @@ public class FamiliesController(IFamilyService familyService) : ControllerBase
         return Ok(ApiResponse<FamilyDto>.Ok(result));
     }
 
-    // Edita o nome de uma família (apenas se pertencer ao usuário autenticado)
+    /// <summary>
+    /// Edita o nome de uma família (apenas se pertencer ao usuário autenticado).
+    /// </summary>
+    /// <param name="id">Identificador único da família.</param>
+    /// <param name="request">Novos dados da família (nome).</param>
+    /// <returns>O DTO da família atualizada.</returns>
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<ApiResponse<FamilyDto>>> UpdateFamily(Guid id, UpdateFamilyRequest request)
     {
@@ -45,7 +62,11 @@ public class FamiliesController(IFamilyService familyService) : ControllerBase
         return Ok(ApiResponse<FamilyDto>.Ok(result));
     }
 
-    // Exclui uma família (apenas se pertencer ao usuário autenticado)
+    /// <summary>
+    /// Exclui uma família permanentemente (apenas se pertencer ao usuário autenticado).
+    /// </summary>
+    /// <param name="id">Identificador único da família.</param>
+    /// <returns>Uma resposta padrão de sucesso.</returns>
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult<ApiResponse>> DeleteFamily(Guid id)
     {
@@ -54,7 +75,12 @@ public class FamiliesController(IFamilyService familyService) : ControllerBase
         return Ok(ApiResponse.Ok());
     }
 
-    // Cria um novo membro (familiar) associado à família
+    /// <summary>
+    /// Cria um novo membro (familiar) associado à família informada.
+    /// </summary>
+    /// <param name="familyId">Identificador único da família.</param>
+    /// <param name="request">Dados de criação do familiar.</param>
+    /// <returns>O DTO do familiar criado.</returns>
     [HttpPost("{familyId:guid}/familiars")]
     public async Task<ActionResult<ApiResponse<FamiliarDto>>> CreateFamiliar(Guid familyId, CreateFamiliarRequest request)
     {
@@ -62,7 +88,13 @@ public class FamiliesController(IFamilyService familyService) : ControllerBase
         return Ok(ApiResponse<FamiliarDto>.Ok(result));
     }
 
-    // Obtém a lista paginada de familiares cadastrados na família
+    /// <summary>
+    /// Obtém a lista paginada de familiares cadastrados na família informada.
+    /// </summary>
+    /// <param name="familyId">Identificador único da família.</param>
+    /// <param name="page">Número da página (1-based).</param>
+    /// <param name="pageSize">Quantidade máxima de registros por página.</param>
+    /// <returns>Resultado paginado dos familiares.</returns>
     [HttpGet("{familyId:guid}/familiars")]
     public async Task<ActionResult<ApiResponse<PagedResult<FamiliarDto>>>> GetFamiliars(
         Guid familyId,
@@ -73,7 +105,13 @@ public class FamiliesController(IFamilyService familyService) : ControllerBase
         return Ok(ApiResponse<PagedResult<FamiliarDto>>.Ok(result));
     }
 
-    // Edita os dados de um familiar existente
+    /// <summary>
+    /// Edita os dados de um familiar existente.
+    /// </summary>
+    /// <param name="familyId">Identificador único da família.</param>
+    /// <param name="id">Identificador único do familiar.</param>
+    /// <param name="request">Novos dados do familiar.</param>
+    /// <returns>O DTO do familiar atualizado.</returns>
     [HttpPut("{familyId:guid}/familiars/{id:guid}")]
     public async Task<ActionResult<ApiResponse<FamiliarDto>>> UpdateFamiliar(Guid familyId, Guid id, UpdateFamiliarRequest request)
     {
@@ -81,7 +119,12 @@ public class FamiliesController(IFamilyService familyService) : ControllerBase
         return Ok(ApiResponse<FamiliarDto>.Ok(result));
     }
 
-    // Exclui um familiar específico da família
+    /// <summary>
+    /// Exclui um familiar específico de uma família.
+    /// </summary>
+    /// <param name="familyId">Identificador único da família.</param>
+    /// <param name="id">Identificador único do familiar.</param>
+    /// <returns>Uma resposta padrão de sucesso.</returns>
     [HttpDelete("{familyId:guid}/familiars/{id:guid}")]
     public async Task<ActionResult<ApiResponse>> DeleteFamiliar(Guid familyId, Guid id)
     {
@@ -89,6 +132,11 @@ public class FamiliesController(IFamilyService familyService) : ControllerBase
         return Ok(ApiResponse.Ok());
     }
 
+    /// <summary>
+    /// Extrai o identificador único do usuário autenticado a partir das claims do token JWT.
+    /// </summary>
+    /// <returns>O identificador único (Guid) do usuário.</returns>
+    /// <exception cref="BusinessException">Lançada se o usuário não estiver autenticado ou for inválido.</exception>
     private Guid GetUserId()
     {
         var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

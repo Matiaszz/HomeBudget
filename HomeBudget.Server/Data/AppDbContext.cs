@@ -14,4 +14,19 @@ public class AppDbContext : DbContext
     {
 
     }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<User>()
+            .HasIndex(u => u.Email)
+            .IsUnique();
+
+        modelBuilder.Entity<Transaction>()
+            .HasOne(t => t.Familiar)
+            .WithMany()
+            .HasForeignKey(t => t.FamiliarId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
 }

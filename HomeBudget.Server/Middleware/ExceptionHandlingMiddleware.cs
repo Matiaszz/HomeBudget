@@ -6,10 +6,18 @@ using HomeBudget.Server.Models;
 
 namespace HomeBudget.Server.Middleware;
 
+/// <summary>
+/// Middleware global para captura e tratamento centralizado de exceções na API.
+/// </summary>
 public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
 {
     private readonly RequestDelegate _next = next;
     private readonly ILogger<ExceptionHandlingMiddleware> _logger = logger;
+
+    /// <summary>
+    /// Invoca a execução da requisição capturando qualquer exceção disparada no pipeline.
+    /// </summary>
+    /// <param name="context">O contexto HTTP da requisição atual.</param>
     public async Task InvokeAsync(HttpContext context)
     {
         try
@@ -28,6 +36,9 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
         }
     }
 
+    /// <summary>
+    /// Formata e envia uma resposta JSON padronizada (ApiResponse.Fail) para o cliente.
+    /// </summary>
     private static async Task HandleExceptionAsync(HttpContext context, HttpStatusCode statusCode, string errorCode, string message)
     {
         context.Response.ContentType = "application/json";

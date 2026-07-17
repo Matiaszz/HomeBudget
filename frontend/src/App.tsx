@@ -8,7 +8,8 @@ import {
   Sparkles,
   User as UserIcon,
   CheckCircle2,
-  Home
+  Home,
+  X
 } from "lucide-react";
 import { LoginView } from "@/components/auth/LoginView";
 import { RegisterView } from "@/components/auth/RegisterView";
@@ -54,6 +55,7 @@ export default function App() {
     netBalance: number;
     familiarExpenses: { familiarId: string; familiarName: string; totalExpense: number }[];
     categoryExpenses: { category: string; totalAmount: number }[];
+    familiarSummaries: { familiarId: string; familiarName: string; totalIncome: number; totalExpense: number; netBalance: number }[];
   } | null>(null);
 
   // Feedback states
@@ -85,6 +87,16 @@ export default function App() {
       return () => clearTimeout(timer);
     }
   }, [success]);
+
+  // Auto-clear error messages after 5 seconds to make them temporary
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setError(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
 
   // Navigation helper
   const navigate = (to: string) => {
@@ -531,22 +543,34 @@ export default function App() {
 
               {/* Messages Alert */}
               {error && (
-                <div className="p-4 rounded-xl border border-destructive/20 bg-destructive/10 text-destructive flex items-start gap-3 text-sm animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="relative p-4 pr-10 rounded-xl border border-destructive/20 bg-destructive/10 text-destructive flex items-start gap-3 text-sm animate-in fade-in slide-in-from-top-2 duration-300">
                   <ShieldAlert className="size-5 shrink-0 text-destructive mt-0.5" />
                   <div>
                     <span className="font-semibold text-destructive">Ops! Algo deu errado</span>
                     <p className="mt-0.5">{error}</p>
                   </div>
+                  <button
+                    onClick={() => setError(null)}
+                    className="absolute top-3 right-3 text-destructive/70 hover:text-destructive cursor-pointer transition-colors"
+                  >
+                    <X className="size-4" />
+                  </button>
                 </div>
               )}
 
               {success && (
-                <div className="p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-850 flex items-start gap-3 text-sm animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="relative p-4 pr-10 rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-850 flex items-start gap-3 text-sm animate-in fade-in slide-in-from-top-2 duration-300">
                   <CheckCircle2 className="size-5 shrink-0 text-emerald-600 mt-0.5" />
                   <div>
                     <span className="font-semibold text-emerald-950">Sucesso!</span>
                     <p className="mt-0.5">{success}</p>
                   </div>
+                  <button
+                    onClick={() => setSuccess(null)}
+                    className="absolute top-3 right-3 text-emerald-650 hover:text-emerald-850 cursor-pointer transition-colors"
+                  >
+                    <X className="size-4" />
+                  </button>
                 </div>
               )}
 
@@ -625,21 +649,33 @@ export default function App() {
           <div className="w-full">
             <div className="max-w-md mx-auto mb-6">
               {error && (
-                <div className="p-4 rounded-xl border border-destructive/20 bg-destructive/10 text-destructive flex items-start gap-3 text-sm animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="relative p-4 pr-10 rounded-xl border border-destructive/20 bg-destructive/10 text-destructive flex items-start gap-3 text-sm animate-in fade-in slide-in-from-top-2 duration-300">
                   <ShieldAlert className="size-5 shrink-0 text-destructive mt-0.5" />
                   <div>
                     <span className="font-semibold text-destructive">Ops! Algo deu errado</span>
                     <p className="mt-0.5">{error}</p>
                   </div>
+                  <button
+                    onClick={() => setError(null)}
+                    className="absolute top-3 right-3 text-destructive/70 hover:text-destructive cursor-pointer transition-colors"
+                  >
+                    <X className="size-4" />
+                  </button>
                 </div>
               )}
               {success && (
-                <div className="p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-850 flex items-start gap-3 text-sm animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="relative p-4 pr-10 rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-850 flex items-start gap-3 text-sm animate-in fade-in slide-in-from-top-2 duration-300">
                   <CheckCircle2 className="size-5 shrink-0 text-emerald-600 mt-0.5" />
                   <div>
                     <span className="font-semibold text-emerald-950">Sucesso!</span>
                     <p className="mt-0.5">{success}</p>
                   </div>
+                  <button
+                    onClick={() => setSuccess(null)}
+                    className="absolute top-3 right-3 text-emerald-650 hover:text-emerald-850 cursor-pointer transition-colors"
+                  >
+                    <X className="size-4" />
+                  </button>
                 </div>
               )}
             </div>
@@ -719,22 +755,34 @@ export default function App() {
           {/* Messages Alert */}
           <div className="max-w-md mx-auto">
             {error && (
-              <div className="mb-6 p-4 rounded-xl border border-destructive/20 bg-destructive/10 text-destructive flex items-start gap-3 text-sm animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="relative mb-6 p-4 pr-10 rounded-xl border border-destructive/20 bg-destructive/10 text-destructive flex items-start gap-3 text-sm animate-in fade-in slide-in-from-top-2 duration-300">
                 <ShieldAlert className="size-5 shrink-0 text-destructive mt-0.5" />
                 <div>
                   <span className="font-semibold text-destructive">Ops! Algo deu errado</span>
                   <p className="mt-0.5">{error}</p>
                 </div>
+                <button
+                  onClick={() => setError(null)}
+                  className="absolute top-3 right-3 text-destructive/70 hover:text-destructive cursor-pointer transition-colors"
+                >
+                  <X className="size-4" />
+                </button>
               </div>
             )}
 
             {success && (
-              <div className="mb-6 p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-850 flex items-start gap-3 text-sm animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="relative mb-6 p-4 pr-10 rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-850 flex items-start gap-3 text-sm animate-in fade-in slide-in-from-top-2 duration-300">
                 <CheckCircle2 className="size-5 shrink-0 text-emerald-600 mt-0.5" />
                 <div>
                   <span className="text-emerald-955 font-medium">Sucesso!</span>
                   <p className="mt-0.5">{success}</p>
                 </div>
+                <button
+                  onClick={() => setSuccess(null)}
+                  className="absolute top-3 right-3 text-emerald-650 hover:text-emerald-850 cursor-pointer transition-colors"
+                >
+                  <X className="size-4" />
+                </button>
               </div>
             )}
           </div>
