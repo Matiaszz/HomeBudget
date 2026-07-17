@@ -9,6 +9,7 @@ using HomeBudget.Server.Models;
 using HomeBudget.Server.Models.Requests;
 using HomeBudget.Server.Models.Responses;
 using HomeBudget.Server.Services;
+using HomeBudget.Server.Services.Contracts;
 
 namespace HomeBudget.Server.Controllers;
 
@@ -52,6 +53,20 @@ public class FamiliesController : ControllerBase
     {
         var result = await _familyService.GetFamiliarsAsync(familyId);
         return Ok(ApiResponse<List<FamiliarDto>>.Ok(result));
+    }
+
+    [HttpPut("{familyId:guid}/familiars/{id:guid}")]
+    public async Task<ActionResult<ApiResponse<FamiliarDto>>> UpdateFamiliar(Guid familyId, Guid id, UpdateFamiliarRequest request)
+    {
+        var result = await _familyService.UpdateFamiliarAsync(familyId, id, request);
+        return Ok(ApiResponse<FamiliarDto>.Ok(result));
+    }
+
+    [HttpDelete("{familyId:guid}/familiars/{id:guid}")]
+    public async Task<ActionResult<ApiResponse>> DeleteFamiliar(Guid familyId, Guid id)
+    {
+        await _familyService.DeleteFamiliarAsync(familyId, id);
+        return Ok(ApiResponse.Ok());
     }
 
     private Guid GetUserId()

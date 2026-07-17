@@ -23,6 +23,8 @@ export const ERROR_MESSAGES: Record<string, string> = {
   INVALID_CREDENTIALS: 'E-mail ou senha incorretos. Por favor, tente novamente.',
   NETWORK_ERROR: 'Não foi possível conectar ao servidor. Por favor, verifique sua conexão.',
   UNKNOWN_ERROR: 'Ocorreu um erro inesperado. Tente novamente mais tarde.',
+  FAMILIAR_NOT_FOUND: 'Familiar não encontrado.',
+  FAMILY_NOT_FOUND: 'Família não encontrada.',
 };
 
 export function getFriendlyErrorMessage(errorCode: string, defaultMessage?: string): string {

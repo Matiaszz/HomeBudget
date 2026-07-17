@@ -8,14 +8,9 @@ using HomeBudget.Server.Models;
 
 namespace HomeBudget.Server.Repositories;
 
-public class FamilyRepository : IFamilyRepository
+public class FamilyRepository(AppDbContext context) : IFamilyRepository
 {
-    private readonly AppDbContext _context;
-
-    public FamilyRepository(AppDbContext context)
-    {
-        _context = context;
-    }
+    private readonly AppDbContext _context = context;
 
     public async Task<Family?> GetByIdWithFamiliarsAsync(Guid id)
     {
@@ -30,7 +25,7 @@ public class FamilyRepository : IFamilyRepository
             .Include(u => u.Families)
             .FirstOrDefaultAsync(u => u.Id == userId);
 
-        return user?.Families.ToList() ?? new List<Family>();
+        return user?.Families.ToList() ?? [];
     }
 
     public async Task AddFamilyAsync(Family family)
@@ -53,6 +48,16 @@ public class FamilyRepository : IFamilyRepository
     public async Task<Family?> GetFamilyByIdAsync(Guid id)
     {
         return await _context.Families.FindAsync(id);
+    }
+
+    public async Task<Familiar?> GetFamiliarByIdAsync(Guid id)
+    {
+        return await _context.Familiars.FindAsync(id);
+    }
+
+    public void DeleteFamiliar(Familiar familiar)
+    {
+        _context.Familiars.Remove(familiar);
     }
 
     public async Task SaveChangesAsync()

@@ -4,6 +4,7 @@ using HomeBudget.Server.Models;
 using HomeBudget.Server.Models.Requests;
 using HomeBudget.Server.Models.Responses;
 using HomeBudget.Server.Services;
+using HomeBudget.Server.Services.Contracts;
 
 namespace HomeBudget.Server.Controllers;
 

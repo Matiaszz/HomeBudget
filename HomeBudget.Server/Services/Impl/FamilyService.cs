@@ -100,4 +100,49 @@ public class FamilyService : IFamilyService
             Age = f.Age
         }).ToList();
     }
+
+    public async Task<FamiliarDto> UpdateFamiliarAsync(Guid familyId, Guid id, UpdateFamiliarRequest request)
+    {
+        var family = await _familyRepository.GetFamilyByIdAsync(familyId);
+        if (family == null)
+        {
+            throw new BusinessException("FAMILY_NOT_FOUND", "Família não encontrada.");
+        }
+
+        var familiar = await _familyRepository.GetFamiliarByIdAsync(id);
+        if (familiar == null || familiar.FamilyId != familyId)
+        {
+            throw new BusinessException("FAMILIAR_NOT_FOUND", "Familiar não encontrado.");
+        }
+
+        familiar.Name = request.Name;
+        familiar.Age = request.Age;
+
+        await _familyRepository.SaveChangesAsync();
+
+        return new FamiliarDto
+        {
+            Id = familiar.Id,
+            Name = familiar.Name,
+            Age = familiar.Age
+        };
+    }
+
+    public async Task DeleteFamiliarAsync(Guid familyId, Guid id)
+    {
+        var family = await _familyRepository.GetFamilyByIdAsync(familyId);
+        if (family == null)
+        {
+            throw new BusinessException("FAMILY_NOT_FOUND", "Família não encontrada.");
+        }
+
+        var familiar = await _familyRepository.GetFamiliarByIdAsync(id);
+        if (familiar == null || familiar.FamilyId != familyId)
+        {
+            throw new BusinessException("FAMILIAR_NOT_FOUND", "Familiar não encontrado.");
+        }
+
+        _familyRepository.DeleteFamiliar(familiar);
+        await _familyRepository.SaveChangesAsync();
+    }
 }

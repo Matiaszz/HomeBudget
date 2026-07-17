@@ -311,6 +311,49 @@ export default function App() {
     }
   };
 
+  const handleUpdateFamiliar = async (id: string, nome: string, idade: number) => {
+    if (!selectedFamily) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const updatedFamiliar = await apiRequest<Familiar>(`/api/families/${selectedFamily.id}/familiars/${id}`, {
+        method: "PUT",
+        body: JSON.stringify({ nome, idade }),
+      });
+      setFamiliars((prev) => prev.map((f) => (f.id === id ? updatedFamiliar : f)));
+      setSuccess("Familiar atualizado com sucesso!");
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(getFriendlyErrorMessage(err.errorCode, err.errorMessage));
+      } else {
+        setError("Erro ao atualizar familiar.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteFamiliar = async (id: string) => {
+    if (!selectedFamily) return;
+    setLoading(true);
+    setError(null);
+    try {
+      await apiRequest<void>(`/api/families/${selectedFamily.id}/familiars/${id}`, {
+        method: "DELETE",
+      });
+      setFamiliars((prev) => prev.filter((f) => f.id !== id));
+      setSuccess("Familiar removido com sucesso!");
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(getFriendlyErrorMessage(err.errorCode, err.errorMessage));
+      } else {
+        setError("Erro ao remover familiar.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleChangeFamily = () => {
     if (user) {
       localStorage.removeItem(`selected_family_${user.id}`);
@@ -637,6 +680,8 @@ export default function App() {
                 <FamiliarsManager
                   familiars={familiars}
                   onCreateFamiliar={handleCreateFamiliar}
+                  onUpdateFamiliar={handleUpdateFamiliar}
+                  onDeleteFamiliar={handleDeleteFamiliar}
                   loading={loading}
                 />
               </div>
