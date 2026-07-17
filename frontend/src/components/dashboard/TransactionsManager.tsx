@@ -19,9 +19,9 @@ import { type Familiar } from "@/components/family/FamiliarsManager";
 
 export interface UserDto {
   id: string;
-  nome: string;
+  name: string;
   email: string;
-  dataNascimento: string;
+  birthdate: string;
   canHaveIncome: boolean;
 }
 
@@ -59,6 +59,19 @@ interface TransactionsManagerProps {
   }) => Promise<void>;
 }
 
+// Formata um valor monetário em reais (ex: "1.500,00")
+function formatCurrencyInput(value: string): string {
+  // Remove tudo que não é dígito
+  const digits = value.replace(/\D/g, "");
+  if (!digits) return "";
+  // Interpreta os últimos 2 dígitos como centavos
+  const cents = parseInt(digits, 10);
+  return (cents / 100).toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
 export function TransactionsManager({
   user,
   transactions,
@@ -71,48 +84,73 @@ export function TransactionsManager({
 
   // Estados do formulário de transação
   const [txDescription, setTxDescription] = useState("");
-  const [txAmount, setTxAmount] = useState("");
+  const [txAmountDisplay, setTxAmountDisplay] = useState(""); // Valor formatado para exibição
+  const [txAmountCents, setTxAmountCents] = useState(0);      // Valor em centavos para envio
   const [txType, setTxType] = useState<"income" | "expense">("expense");
   const [txCategory, setTxCategory] = useState("Alimentação");
   const [txDate, setTxDate] = useState(new Date().toISOString().split("T")[0]);
   const [txFamiliarId, setTxFamiliarId] = useState("");
 
+  // Estado de erro inline do formulário (substitui alert())
+  const [formError, setFormError] = useState<string | null>(null);
+
   const todayStr = new Date().toISOString().split("T")[0];
+
+  // Handler de input do valor monetário com formatação automática
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value.replace(/\D/g, "");
+    if (!raw) {
+      setTxAmountDisplay("");
+      setTxAmountCents(0);
+      return;
+    }
+    const cents = parseInt(raw, 10);
+    setTxAmountCents(cents);
+    setTxAmountDisplay(formatCurrencyInput(e.target.value));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!txDescription || !txAmount || !txDate) return;
+    setFormError(null);
 
-    const amountNum = parseFloat(txAmount);
-    if (isNaN(amountNum) || amountNum <= 0) return;
+    if (!txDescription.trim()) {
+      setFormError("A descrição é obrigatória.");
+      return;
+    }
+
+    if (txAmountCents <= 0) {
+      setFormError("O valor deve ser maior que zero.");
+      return;
+    }
 
     if (txDate > todayStr) {
-      alert("A data da transação não pode ser posterior a hoje.");
+      setFormError("A data da transação não pode ser posterior a hoje.");
       return;
     }
 
     const finalType = user.canHaveIncome ? txType : "expense";
+
+    // Para despesas, o familiar é obrigatório. Para receitas, é opcional.
     if (finalType === "expense" && !txFamiliarId) {
-      alert("Selecione o familiar responsável pela despesa.");
+      setFormError("Selecione o familiar responsável pela despesa.");
       return;
     }
 
-    // Converte o valor de Real para Centavos
-    const amountCents = Math.round(amountNum * 100);
-
     await onAddTransaction({
       description: txDescription,
-      amount: amountCents,
+      amount: txAmountCents,
       type: finalType,
       category: txCategory,
       date: txDate,
-      familiarId: txFamiliarId
+      familiarId: txFamiliarId || undefined
     });
 
     // Limpa os campos do formulário
     setTxDescription("");
-    setTxAmount("");
+    setTxAmountDisplay("");
+    setTxAmountCents(0);
     setTxFamiliarId("");
+    setFormError(null);
     setIsModalOpen(false);
   };
 
@@ -160,6 +198,14 @@ export function TransactionsManager({
       case "Lazer": return "border-emerald-500/20 text-emerald-600 bg-emerald-500/5";
       case "Trabalho": return "border-teal-500/20 text-teal-600 bg-teal-500/5";
       default: return "border-slate-500/20 text-slate-600 bg-slate-500/5";
+    }
+  };
+
+  // Controla a mudança de tipo de transação e limpa familiar se mudar para receita (opcional)
+  const handleTypeChange = (type: "income" | "expense") => {
+    setTxType(type);
+    if (type === "income") {
+      setTxFamiliarId(""); // Para receita, familiar é opcional — limpa a seleção obrigatória
     }
   };
 
@@ -310,7 +356,7 @@ export function TransactionsManager({
                 type="button"
                 variant="ghost"
                 size="icon"
-                onClick={() => setIsModalOpen(false)}
+                onClick={() => { setIsModalOpen(false); setFormError(null); }}
                 className="absolute top-5 right-5 size-8 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
               >
                 <X className="size-4" />
@@ -332,6 +378,15 @@ export function TransactionsManager({
 
             <form onSubmit={handleSubmit}>
               <div className="p-6 space-y-4">
+                
+                {/* Erro inline do formulário */}
+                {formError && (
+                  <div className="flex items-start gap-2 p-3 rounded-lg border border-destructive/20 bg-destructive/10 text-destructive text-xs animate-in fade-in slide-in-from-top-1 duration-200">
+                    <ShieldAlert className="size-4 shrink-0 mt-0.5" />
+                    <span>{formError}</span>
+                  </div>
+                )}
+
                 {/* Selector Segmentado de Tipo */}
                 <div className="space-y-1.5">
                   <Label>Tipo de Transação</Label>
@@ -339,10 +394,7 @@ export function TransactionsManager({
                     <div className="grid grid-cols-2 gap-1 p-1 bg-muted rounded-lg border border-border">
                       <button
                         type="button"
-                        onClick={() => {
-                          setTxType("expense");
-                          setTxFamiliarId("");
-                        }}
+                        onClick={() => handleTypeChange("expense")}
                         className={`py-1.5 px-3 rounded-md text-xs font-semibold transition-all cursor-pointer ${
                           txType === "expense"
                             ? "bg-background text-foreground shadow-sm border border-border/50"
@@ -353,7 +405,7 @@ export function TransactionsManager({
                       </button>
                       <button
                         type="button"
-                        onClick={() => setTxType("income")}
+                        onClick={() => handleTypeChange("income")}
                         className={`py-1.5 px-3 rounded-md text-xs font-semibold transition-all cursor-pointer ${
                           txType === "income"
                             ? "bg-background text-foreground shadow-sm border border-border/50"
@@ -385,18 +437,18 @@ export function TransactionsManager({
                   />
                 </div>
 
-                {/* Valor */}
+                {/* Valor com formatação de dinheiro */}
                 <div className="space-y-1.5">
                   <Label htmlFor="tx-amount">Valor</Label>
                   <div className="relative flex items-center">
                     <span className="absolute left-3 text-sm font-semibold text-muted-foreground">R$</span>
                     <Input
                       id="tx-amount"
-                      type="number"
-                      step="0.01"
+                      type="text"
+                      inputMode="numeric"
                       placeholder="0,00"
-                      value={txAmount}
-                      onChange={(e) => setTxAmount(e.target.value)}
+                      value={txAmountDisplay}
+                      onChange={handleAmountChange}
                       required
                       className="pl-9 h-9 text-sm"
                     />
@@ -443,23 +495,32 @@ export function TransactionsManager({
                   </div>
                 </div>
 
-                {/* Familiar Responsável (Apenas se for Despesa) */}
+                {/* Familiar (obrigatório para Despesa, opcional para Receita) */}
                 <div className="space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
-                  <Label htmlFor="tx-familiar">Familiar Responsável</Label>
+                  <Label htmlFor="tx-familiar">
+                    Familiar
+                    {(user.canHaveIncome ? txType : "expense") === "expense" ? (
+                      <span className="text-destructive ml-1">*</span>
+                    ) : (
+                      <span className="text-muted-foreground text-[10px] ml-1">(opcional)</span>
+                    )}
+                  </Label>
                   <div className="relative">
                     <select
                       id="tx-familiar"
                       value={txFamiliarId}
                       onChange={(e) => setTxFamiliarId(e.target.value)}
-                      required
+                      required={(user.canHaveIncome ? txType : "expense") === "expense"}
                       className="h-9 w-full rounded-lg border bg-transparent pl-3 pr-8 py-1 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 transition-all appearance-none cursor-pointer"
                     >
-                      <option value="" disabled className="text-muted-foreground">
-                        Selecione o familiar...
+                      <option value="" className="text-muted-foreground">
+                        {(user.canHaveIncome ? txType : "expense") === "expense"
+                          ? "Selecione o familiar responsável..."
+                          : "Selecione o familiar (opcional)..."}
                       </option>
-                      {familiars.map((f) => (
-                        <option key={f.id} value={f.id} className="text-foreground bg-card">
-                          {f.name}
+                      {familiars.map((familiar) => (
+                        <option key={familiar.id} value={familiar.id} className="text-foreground bg-card">
+                          {familiar.name}
                         </option>
                       ))}
                     </select>
@@ -474,7 +535,7 @@ export function TransactionsManager({
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={() => { setIsModalOpen(false); setFormError(null); }}
                   className="cursor-pointer"
                 >
                   Cancelar
@@ -491,7 +552,7 @@ export function TransactionsManager({
         </div>
       )}
 
-      {/* Histórico de Transaçõe */}
+      {/* Histórico de Transações */}
       <Card className="border-border bg-card">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg font-semibold tracking-tight text-foreground">

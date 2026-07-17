@@ -25,6 +25,9 @@ export const ERROR_MESSAGES: Record<string, string> = {
   UNKNOWN_ERROR: 'Ocorreu um erro inesperado. Tente novamente mais tarde.',
   FAMILIAR_NOT_FOUND: 'Familiar não encontrado.',
   FAMILY_NOT_FOUND: 'Família não encontrada.',
+  VALIDATION_ERROR: 'Dados inválidos. Verifique os campos e tente novamente.',
+  INVALID_BIRTHDATE: 'A data de nascimento informada é inválida.',
+  INVALID_DATE: 'A data da transação não pode ser posterior a hoje.',
 };
 
 export function getFriendlyErrorMessage(errorCode: string, defaultMessage?: string): string {

@@ -1,25 +1,17 @@
 using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
 
 namespace HomeBudget.Server.Models.Requests;
 
 /// <summary>
-/// Modelo de requisição para atualizar os dados de um familiar existente.
+/// Request model to update an existing family member's data.
 /// </summary>
 public record UpdateFamiliarRequest
 {
-    /// <summary>
-    /// Novo nome do familiar. Campo obrigatório.
-    /// </summary>
+    /// <summary>New name of the family member. Required.</summary>
     [Required(ErrorMessage = "O nome do familiar é obrigatório.")]
-    [JsonPropertyName("nome")]
     public string Name { get; init; } = string.Empty;
 
-    /// <summary>
-    /// Nova idade do familiar. Deve estar entre 0 e 150.
-    /// </summary>
-    [Required(ErrorMessage = "A idade do familiar é obrigatória.")]
-    [Range(0, 150, ErrorMessage = "A idade deve ser um valor válido.")]
-    [JsonPropertyName("idade")]
-    public int Age { get; init; }
+    /// <summary>New date of birth. Must be a valid past date.</summary>
+    [Required(ErrorMessage = "A data de nascimento do familiar é obrigatória.")]
+    public DateTime Birthdate { get; init; }
 }

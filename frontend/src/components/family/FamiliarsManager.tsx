@@ -2,12 +2,13 @@ import { useState } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Users, Plus, UserCheck, Pencil, Trash, Check, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Users, Plus, UserCheck, Pencil, Trash, Check, X, ChevronLeft, ChevronRight, ShieldAlert } from "lucide-react";
 
 export interface Familiar {
   id: string;
   name: string;
   age: number;
+  birthdate: string; // ISO date string from API
 }
 
 export interface PagedResult<T> {
@@ -20,8 +21,8 @@ export interface PagedResult<T> {
 
 interface FamiliarsManagerProps {
   familiars: Familiar[];
-  onCreateFamiliar: (nome: string, idade: number) => Promise<void>;
-  onUpdateFamiliar: (id: string, nome: string, idade: number) => Promise<void>;
+  onCreateFamiliar: (name: string, birthdate: string) => Promise<void>;
+  onUpdateFamiliar: (id: string, name: string, birthdate: string) => Promise<void>;
   onDeleteFamiliar: (id: string) => Promise<void>;
   loading: boolean;
   page: number;
@@ -29,6 +30,16 @@ interface FamiliarsManagerProps {
   totalCount: number;
   onPageChange: (page: number) => void;
 }
+
+// Maximum allowed birthdate = today
+const todayStr = new Date().toISOString().split("T")[0];
+
+// Minimum allowed birthdate = 150 years ago
+const minBirthdateStr = (() => {
+  const d = new Date();
+  d.setFullYear(d.getFullYear() - 150);
+  return d.toISOString().split("T")[0];
+})();
 
 export function FamiliarsManager({
   familiars,
@@ -41,62 +52,87 @@ export function FamiliarsManager({
   totalCount,
   onPageChange,
 }: FamiliarsManagerProps) {
-  // Estados para adição de novo familiar
-  const [nome, setNome] = useState("");
-  const [idade, setIdade] = useState("");
+  // Add-form state
+  const [newName, setNewName] = useState("");
+  const [newBirthdate, setNewBirthdate] = useState("");
   const [isAdding, setIsAdding] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
-  // Estados para controle de edição inline de um familiar existente
-  const [editingId, setEditingId] = useState<string | null>(null); // Guarda o ID do familiar em edição
-  const [editNome, setEditNome] = useState("");                     // Guarda o nome temporário sendo editado
-  const [editIdade, setEditIdade] = useState("");                   // Guarda a idade temporária sendo editada
+  // Inline-edit state
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editBirthdate, setEditBirthdate] = useState("");
+  const [editError, setEditError] = useState<string | null>(null);
 
-  // Estado para controle de confirmação de exclusão (evita cliques acidentais)
-  const [deletingId, setDeletingId] = useState<string | null>(null); // Guarda o ID do familiar pendente de exclusão
+  // Delete-confirmation state
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // Envia a requisição para criação de um novo familiar
+  // Validates a birthdate string; returns an error message or null
+  const validateBirthdate = (dateStr: string): string | null => {
+    if (!dateStr) return "A data de nascimento é obrigatória.";
+    if (dateStr > todayStr) return "A data de nascimento não pode ser uma data futura.";
+    if (dateStr < minBirthdateStr) return "A data de nascimento resultaria em uma idade superior a 150 anos.";
+    return null;
+  };
+
+  // Submit new familiar
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nome.trim() || !idade) return;
-    const idadeNum = parseInt(idade);
-    if (isNaN(idadeNum) || idadeNum < 0) return;
-    await onCreateFamiliar(nome.trim(), idadeNum);
-    setNome("");
-    setIdade("");
+    setFormError(null);
+    if (!newName.trim()) {
+      setFormError("O nome do familiar é obrigatório.");
+      return;
+    }
+    const dateError = validateBirthdate(newBirthdate);
+    if (dateError) {
+      setFormError(dateError);
+      return;
+    }
+    await onCreateFamiliar(newName.trim(), newBirthdate);
+    setNewName("");
+    setNewBirthdate("");
     setIsAdding(false);
+    setFormError(null);
   };
 
-  // Prepara o estado para iniciar a edição inline de um familiar
+  // Start inline edit
   const handleStartEdit = (f: Familiar) => {
     setEditingId(f.id);
-    setEditNome(f.name);
-    setEditIdade(f.age.toString());
-    setDeletingId(null); // Cancela qualquer intenção de exclusão pendente
+    setEditName(f.name);
+    setEditBirthdate(f.birthdate ? f.birthdate.split("T")[0] : "");
+    setDeletingId(null);
+    setEditError(null);
   };
 
-  // Cancela a edição e limpa os campos temporários
+  // Cancel inline edit
   const handleCancelEdit = () => {
     setEditingId(null);
-    setEditNome("");
-    setEditIdade("");
+    setEditName("");
+    setEditBirthdate("");
+    setEditError(null);
   };
 
-  // Envia a requisição de atualização para o familiar que está sendo editado inline
+  // Submit inline edit
   const handleUpdate = async (e: React.FormEvent, id: string) => {
     e.preventDefault();
-    if (!editNome.trim() || !editIdade) return;
-    const idadeNum = parseInt(editIdade);
-    if (isNaN(idadeNum) || idadeNum < 0) return;
-    await onUpdateFamiliar(id, editNome.trim(), idadeNum);
+    setEditError(null);
+    if (!editName.trim()) {
+      setEditError("O nome do familiar é obrigatório.");
+      return;
+    }
+    const dateError = validateBirthdate(editBirthdate);
+    if (dateError) {
+      setEditError(dateError);
+      return;
+    }
+    await onUpdateFamiliar(id, editName.trim(), editBirthdate);
     handleCancelEdit();
   };
 
-  // Envia a requisição de exclusão de um familiar e fecha o estado de exclusão pendente
+  // Confirm delete
   const handleDelete = async (id: string) => {
     await onDeleteFamiliar(id);
-    if (deletingId === id) {
-      setDeletingId(null);
-    }
+    if (deletingId === id) setDeletingId(null);
   };
 
   return (
@@ -113,23 +149,29 @@ export function FamiliarsManager({
       <CardContent className="space-y-4">
         {familiars.length > 0 ? (
           <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-            {familiars.map((f) => {
-              const isEditingThis = editingId === f.id;
-              const isDeletingThis = deletingId === f.id;
+            {familiars.map((familiar) => {
+              const isEditingThis = editingId === familiar.id;
+              const isDeletingThis = deletingId === familiar.id;
 
               if (isEditingThis) {
                 return (
                   <form
-                    key={f.id}
-                    onSubmit={(e) => handleUpdate(e, f.id)}
+                    key={familiar.id}
+                    onSubmit={(e) => handleUpdate(e, familiar.id)}
                     className="flex flex-col gap-2 p-3 rounded-lg bg-muted/60 border border-primary/30 animate-in fade-in duration-200"
                   >
+                    {editError && (
+                      <div className="flex items-start gap-1.5 text-[11px] text-destructive animate-in fade-in duration-200">
+                        <ShieldAlert className="size-3.5 shrink-0 mt-0.5" />
+                        <span>{editError}</span>
+                      </div>
+                    )}
                     <div className="grid grid-cols-2 gap-2">
                       <div className="space-y-1">
                         <Input
                           placeholder="Nome"
-                          value={editNome}
-                          onChange={(e) => setEditNome(e.target.value)}
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
                           disabled={loading}
                           required
                           className="h-8 text-xs"
@@ -137,12 +179,11 @@ export function FamiliarsManager({
                       </div>
                       <div className="space-y-1">
                         <Input
-                          type="number"
-                          min="0"
-                          max="150"
-                          placeholder="Idade"
-                          value={editIdade}
-                          onChange={(e) => setEditIdade(e.target.value)}
+                          type="date"
+                          max={todayStr}
+                          min={minBirthdateStr}
+                          value={editBirthdate}
+                          onChange={(e) => setEditBirthdate(e.target.value)}
                           disabled={loading}
                           required
                           className="h-8 text-xs"
@@ -165,7 +206,7 @@ export function FamiliarsManager({
                         type="submit"
                         size="sm"
                         className="h-7 px-2 text-xs"
-                        disabled={loading || !editNome.trim() || !editIdade}
+                        disabled={loading || !editName.trim() || !editBirthdate}
                       >
                         <Check className="size-3.5 mr-1" />
                         Salvar
@@ -176,20 +217,27 @@ export function FamiliarsManager({
               }
 
               return (
-                <div key={f.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/40 border border-border group hover:border-border-hover transition-colors">
+                <div
+                  key={familiar.id}
+                  className="flex items-center justify-between p-3 rounded-lg bg-muted/40 border border-border group hover:border-border-hover transition-colors"
+                >
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
                       <UserCheck className="size-4" />
                     </div>
                     <div>
-                      <p className="font-semibold text-foreground text-sm">{f.name}</p>
-                      <p className="text-xs text-muted-foreground">{f.age} {f.age === 1 ? 'ano' : 'anos'}</p>
+                      <p className="font-semibold text-foreground text-sm">{familiar.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {familiar.age} {familiar.age === 1 ? "ano" : "anos"}
+                      </p>
                     </div>
                   </div>
 
                   {isDeletingThis ? (
                     <div className="flex items-center gap-1.5 animate-in fade-in slide-in-from-right-1 duration-200">
-                      <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mr-1">Excluir?</span>
+                      <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mr-1">
+                        Excluir?
+                      </span>
                       <Button
                         type="button"
                         variant="ghost"
@@ -206,7 +254,7 @@ export function FamiliarsManager({
                         variant="destructive"
                         size="icon"
                         className="size-7"
-                        onClick={() => handleDelete(f.id)}
+                        onClick={() => handleDelete(familiar.id)}
                         disabled={loading}
                         title="Confirmar exclusão"
                       >
@@ -220,7 +268,7 @@ export function FamiliarsManager({
                         variant="ghost"
                         size="icon"
                         className="size-7 text-muted-foreground hover:text-foreground hover:bg-muted"
-                        onClick={() => handleStartEdit(f)}
+                        onClick={() => handleStartEdit(familiar)}
                         disabled={loading}
                         title="Editar familiar"
                       >
@@ -231,7 +279,7 @@ export function FamiliarsManager({
                         variant="ghost"
                         size="icon"
                         className="size-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                        onClick={() => setDeletingId(f.id)}
+                        onClick={() => setDeletingId(familiar.id)}
                         disabled={loading}
                         title="Excluir familiar"
                       >
@@ -294,33 +342,47 @@ export function FamiliarsManager({
             Adicionar Membro
           </Button>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-3 p-3 border border-border rounded-xl bg-muted/20 animate-in fade-in slide-in-from-top-2 duration-200">
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-3 p-3 border border-border rounded-xl bg-muted/20 animate-in fade-in slide-in-from-top-2 duration-200"
+          >
+            {formError && (
+              <div className="flex items-start gap-1.5 text-[11px] text-destructive animate-in fade-in duration-200">
+                <ShieldAlert className="size-3.5 shrink-0 mt-0.5" />
+                <span>{formError}</span>
+              </div>
+            )}
             <div className="space-y-1">
-              <label htmlFor="fam-name" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+              <label
+                htmlFor="familiar-name"
+                className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider"
+              >
                 Nome
               </label>
               <Input
-                id="fam-name"
+                id="familiar-name"
                 placeholder="Nome do familiar"
-                value={nome}
-                onChange={(e) => setNome(e.target.value)}
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
                 disabled={loading}
                 required
                 className="h-8 text-xs"
               />
             </div>
             <div className="space-y-1">
-              <label htmlFor="fam-age" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                Idade
+              <label
+                htmlFor="familiar-birthdate"
+                className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider"
+              >
+                Data de Nascimento
               </label>
               <Input
-                id="fam-age"
-                type="number"
-                min="0"
-                max="150"
-                placeholder="Idade do familiar"
-                value={idade}
-                onChange={(e) => setIdade(e.target.value)}
+                id="familiar-birthdate"
+                type="date"
+                max={todayStr}
+                min={minBirthdateStr}
+                value={newBirthdate}
+                onChange={(e) => setNewBirthdate(e.target.value)}
                 disabled={loading}
                 required
                 className="h-8 text-xs"
@@ -332,12 +394,20 @@ export function FamiliarsManager({
                 variant="ghost"
                 size="sm"
                 className="flex-1 h-8 text-xs"
-                onClick={() => setIsAdding(false)}
+                onClick={() => {
+                  setIsAdding(false);
+                  setFormError(null);
+                }}
                 disabled={loading}
               >
                 Cancelar
               </Button>
-              <Button type="submit" size="sm" className="flex-1 h-8 text-xs" disabled={loading || !nome.trim() || !idade}>
+              <Button
+                type="submit"
+                size="sm"
+                className="flex-1 h-8 text-xs"
+                disabled={loading || !newName.trim() || !newBirthdate}
+              >
                 Salvar
               </Button>
             </div>

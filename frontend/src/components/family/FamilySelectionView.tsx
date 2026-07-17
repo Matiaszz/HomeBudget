@@ -6,7 +6,7 @@ import { Users, Plus, LogOut, ArrowRight, Home, Pencil, Trash, Check, X } from "
 
 interface Family {
   id: string;
-  nome: string;
+  name: string;
 }
 
 interface FamilySelectionViewProps {
@@ -51,7 +51,7 @@ export function FamilySelectionView({
   const handleStartEdit = (e: React.MouseEvent, f: Family) => {
     e.stopPropagation();
     setEditingId(f.id);
-    setEditName(f.nome);
+    setEditName(f.name);
     setDeletingId(null);
   };
 
@@ -169,7 +169,7 @@ export function FamilySelectionView({
                               <Home className="size-4" />
                             </div>
                             <div>
-                              <p className="font-semibold text-foreground text-sm">{family.nome}</p>
+                              <p className="font-semibold text-foreground text-sm">{family.name}</p>
                             </div>
                           </button>
 

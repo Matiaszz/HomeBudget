@@ -2,12 +2,12 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { apiRequest, ApiError, getFriendlyErrorMessage } from "./utils/api";
-import { 
-  LogOut, 
-  ShieldAlert, 
-  Sparkles, 
-  User as UserIcon, 
-  CheckCircle2, 
+import {
+  LogOut,
+  ShieldAlert,
+  Sparkles,
+  User as UserIcon,
+  CheckCircle2,
   Home
 } from "lucide-react";
 import { LoginView } from "@/components/auth/LoginView";
@@ -25,7 +25,7 @@ interface LoginResponse {
 
 interface Family {
   id: string;
-  nome: string;
+  name: string;
 }
 
 export default function App() {
@@ -46,7 +46,7 @@ export default function App() {
 
   // Transaction states
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  
+
   // Consolidação orçamentária do ledger (para resumos e gráficos)
   const [budgetSummary, setBudgetSummary] = useState<{
     totalIncome: number;
@@ -70,9 +70,9 @@ export default function App() {
   // Sync profile editing fields when user loads or updates
   useEffect(() => {
     if (user) {
-      setProfileName(user.nome);
+      setProfileName(user.name);
       setProfileEmail(user.email);
-      setProfileBirthdate(user.dataNascimento ? user.dataNascimento.split("T")[0] : "");
+      setProfileBirthdate(user.birthdate ? user.birthdate.split("T")[0] : "");
     }
   }, [user]);
 
@@ -158,7 +158,7 @@ export default function App() {
   useEffect(() => {
     if (user) {
       fetchFamilies();
-      
+
       const storedFamily = localStorage.getItem(`selected_family_${user.id}`);
       if (storedFamily) {
         const family = JSON.parse(storedFamily) as Family;
@@ -217,9 +217,9 @@ export default function App() {
 
       localStorage.setItem("token", response.token);
       localStorage.setItem("user", JSON.stringify(response.user));
-      
+
       setUser(response.user);
-      setSuccess(`Bem-vindo de volta, ${response.user.nome}!`);
+      setSuccess(`Bem-vindo de volta, ${response.user.name}!`);
     } catch (err) {
       if (err instanceof ApiError) {
         setError(getFriendlyErrorMessage(err.errorCode, err.errorMessage));
@@ -241,15 +241,15 @@ export default function App() {
       setLoading(false);
       return;
     }
-    
+
     try {
       await apiRequest<UserDto>("/api/auth/register", {
         method: "POST",
         body: JSON.stringify({
-          nome: name,
-          email: email,
-          password: password,
-          dataNascimento: new Date(birthdate).toISOString(),
+          name,
+          email,
+          password,
+          birthDate: new Date(birthdate).toISOString(),
         }),
       });
 
@@ -283,7 +283,7 @@ export default function App() {
     try {
       const newFamily = await apiRequest<Family>("/api/families", {
         method: "POST",
-        body: JSON.stringify({ nome: name }),
+        body: JSON.stringify({ name }),
       });
       setFamilies((prev) => [...prev, newFamily]);
       handleSelectFamily(newFamily);
@@ -299,14 +299,13 @@ export default function App() {
     }
   };
 
-  // Atualiza os dados de uma família via API PUT /api/families/{id}
   const handleUpdateFamily = async (id: string, name: string) => {
     setLoading(true);
     setError(null);
     try {
       const updatedFamily = await apiRequest<Family>(`/api/families/${id}`, {
         method: "PUT",
-        body: JSON.stringify({ nome: name }),
+        body: JSON.stringify({ name }),
       });
       // Atualiza a lista de famílias no estado
       setFamilies((prev) => prev.map((f) => (f.id === id ? updatedFamily : f)));
@@ -353,17 +352,17 @@ export default function App() {
     }
   };
 
-  const handleCreateFamiliar = async (nome: string, idade: number) => {
+  const handleCreateFamiliar = async (name: string, birthdate: string) => {
     if (!selectedFamily) return;
     setLoading(true);
     setError(null);
     try {
       await apiRequest<Familiar>(`/api/families/${selectedFamily.id}/familiars`, {
         method: "POST",
-        body: JSON.stringify({ nome, idade }),
+        body: JSON.stringify({ name, birthdate: new Date(birthdate).toISOString() }),
       });
       setSuccess("Familiar adicionado com sucesso!");
-      // Recarrega a página atual para obter a lista atualizada com paginação do backend
+      // Reload current page to get updated paginated list from backend
       await fetchFamiliars(selectedFamily.id, familiarsPage);
     } catch (err) {
       if (err instanceof ApiError) {
@@ -376,17 +375,17 @@ export default function App() {
     }
   };
 
-  // Atualiza os dados de um familiar via API PUT /api/families/{familyId}/familiars/{id}
-  const handleUpdateFamiliar = async (id: string, nome: string, idade: number) => {
+  // Updates a family member via API PUT /api/families/{familyId}/familiars/{id}
+  const handleUpdateFamiliar = async (id: string, name: string, birthdate: string) => {
     if (!selectedFamily) return;
     setLoading(true);
     setError(null);
     try {
       const updatedFamiliar = await apiRequest<Familiar>(`/api/families/${selectedFamily.id}/familiars/${id}`, {
         method: "PUT",
-        body: JSON.stringify({ nome, idade }),
+        body: JSON.stringify({ name, birthdate: new Date(birthdate).toISOString() }),
       });
-      // Atualiza o familiar modificado no estado
+      // Update the modified familiar in state
       setFamiliars((prev) => prev.map((f) => (f.id === id ? updatedFamiliar : f)));
       setSuccess("Familiar atualizado com sucesso!");
     } catch (err) {
@@ -437,13 +436,13 @@ export default function App() {
     setBudgetSummary(null);
   };
 
-  const handleAddTransaction = async (tx: { 
-    description: string; 
-    amount: number; 
-    type: "income" | "expense"; 
-    category: string; 
-    date: string; 
-    familiarId?: string; 
+  const handleAddTransaction = async (tx: {
+    description: string;
+    amount: number;
+    type: "income" | "expense";
+    category: string;
+    date: string;
+    familiarId?: string;
   }) => {
     if (!selectedFamily) return;
     setLoading(true);
@@ -493,9 +492,9 @@ export default function App() {
 
     const updatedUser: UserDto = {
       ...user!,
-      nome: profileName,
+      name: profileName,
       email: profileEmail,
-      dataNascimento: profileBirthdate,
+      birthdate: profileBirthdate,
       canHaveIncome
     };
 
@@ -529,7 +528,7 @@ export default function App() {
           {/* Left panel: Auth Form */}
           <div className="flex flex-col justify-center items-center p-6 sm:p-12 md:p-16 lg:p-20 bg-background overflow-y-auto">
             <div className="w-full max-w-md space-y-6">
-              
+
               {/* Messages Alert */}
               {error && (
                 <div className="p-4 rounded-xl border border-destructive/20 bg-destructive/10 text-destructive flex items-start gap-3 text-sm animate-in fade-in slide-in-from-top-2 duration-300">
@@ -611,7 +610,7 @@ export default function App() {
             {user && (
               <div className="flex items-center gap-4">
                 <span className="hidden sm:inline text-sm text-muted-foreground">
-                  Olá, <span className="font-semibold text-foreground">{user.nome}</span>
+                  Olá, <span className="font-semibold text-foreground">{user.name}</span>
                 </span>
                 <Button variant="outline" size="sm" onClick={handleLogout} className="flex items-center gap-1.5">
                   <LogOut className="size-4" />
@@ -668,7 +667,7 @@ export default function App() {
   // Route 3: Dashboard screen (when user and family are selected)
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col justify-between selection:bg-primary selection:text-primary-foreground relative font-sans">
-      
+
       {/* Header */}
       <header className="border-b border-border bg-background/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -681,7 +680,7 @@ export default function App() {
                 HomeBudget
               </span>
               <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mt-0.5">
-                {selectedFamily.nome}
+                {selectedFamily.name}
               </span>
             </div>
           </div>
@@ -689,7 +688,7 @@ export default function App() {
           {user && (
             <div className="flex items-center gap-2 sm:gap-4">
               <span className="hidden md:inline text-sm text-muted-foreground">
-                Olá, <span className="font-semibold text-foreground">{user.nome}</span>
+                Olá, <span className="font-semibold text-foreground">{user.name}</span>
               </span>
               <Button
                 variant="ghost"
@@ -745,11 +744,10 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setActiveTab("dashboard")}
-                className={`pb-3 px-4 text-sm font-medium transition-all relative cursor-pointer focus-visible:outline-none ${
-                  activeTab === "dashboard"
-                    ? "text-foreground font-semibold"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
+                className={`pb-3 px-4 text-sm font-medium transition-all relative cursor-pointer focus-visible:outline-none ${activeTab === "dashboard"
+                  ? "text-foreground font-semibold"
+                  : "text-muted-foreground hover:text-foreground"
+                  }`}
               >
                 Dashboard
                 {activeTab === "dashboard" && (
@@ -759,11 +757,10 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setActiveTab("profile")}
-                className={`pb-3 px-4 text-sm font-medium transition-all relative cursor-pointer focus-visible:outline-none ${
-                  activeTab === "profile"
-                    ? "text-foreground font-semibold"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
+                className={`pb-3 px-4 text-sm font-medium transition-all relative cursor-pointer focus-visible:outline-none ${activeTab === "profile"
+                  ? "text-foreground font-semibold"
+                  : "text-muted-foreground hover:text-foreground"
+                  }`}
               >
                 Perfil
                 {activeTab === "profile" && (
@@ -776,7 +773,7 @@ export default function App() {
           {/* VIEW: DASHBOARD */}
           {user && activeTab === "dashboard" && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start animate-in fade-in slide-in-from-bottom-4 duration-300">
-              
+
               {/* Family Members Column (Left side) */}
               <div className="space-y-6">
                 <FamiliarsManager
@@ -857,9 +854,9 @@ export default function App() {
                       variant="outline"
                       onClick={() => {
                         // Reset form and go back to dashboard
-                        setProfileName(user.nome);
+                        setProfileName(user.name);
                         setProfileEmail(user.email);
-                        setProfileBirthdate(user.dataNascimento ? user.dataNascimento.split("T")[0] : "");
+                        setProfileBirthdate(user.birthdate ? user.birthdate.split("T")[0] : "");
                         setActiveTab("dashboard");
                       }}
                       disabled={loading}

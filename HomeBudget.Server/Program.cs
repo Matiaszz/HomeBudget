@@ -64,7 +64,28 @@ builder.Services
     });
 
 builder.Services.AddAuthorization();
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            // Coleta todas as mensagens de erro de validação do modelo
+            var errors = context.ModelState
+                .Where(e => e.Value?.Errors.Count > 0)
+                .SelectMany(e => e.Value!.Errors.Select(x => x.ErrorMessage))
+                .FirstOrDefault() ?? "Dados inválidos na requisição.";
+
+            var response = new HomeBudget.Server.Models.ApiResponse<object>
+            {
+                Success = false,
+                Data = null,
+                ErrorCode = "VALIDATION_ERROR",
+                ErrorMessage = errors
+            };
+
+            return new Microsoft.AspNetCore.Mvc.BadRequestObjectResult(response);
+        };
+    });
 
 var app = builder.Build();
 

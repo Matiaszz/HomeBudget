@@ -93,15 +93,29 @@ public class FamilyService : IFamilyService
             throw new BusinessException("FAMILY_NOT_FOUND", "Família não encontrada.");
         }
 
-        // 2. Instanciar o familiar
+        // 2. Validar data de nascimento
+        var birthdate = DateTime.SpecifyKind(request.Birthdate.Date, DateTimeKind.Utc);
+        var today = DateTime.UtcNow.Date;
+        if (birthdate > today)
+        {
+            throw new BusinessException("INVALID_BIRTHDATE", "A data de nascimento não pode ser uma data futura.");
+        }
+        var age = today.Year - birthdate.Year;
+        if (birthdate > today.AddYears(-age)) age--;
+        if (age > 150)
+        {
+            throw new BusinessException("INVALID_BIRTHDATE", "A data de nascimento informada resulta em uma idade superior a 150 anos.");
+        }
+
+        // 3. Instanciar o familiar
         var familiar = new Familiar
         {
             Name = request.Name,
-            Age = request.Age,
+            Birthdate = birthdate,
             FamilyId = familyId
         };
 
-        // 3. Persistir o familiar no banco
+        // 4. Persistir o familiar no banco
         await _familyRepository.AddFamiliarAsync(familiar);
         await _familyRepository.SaveChangesAsync();
 
@@ -109,7 +123,8 @@ public class FamilyService : IFamilyService
         {
             Id = familiar.Id,
             Name = familiar.Name,
-            Age = familiar.Age
+            Birthdate = familiar.Birthdate,
+            Age = familiar.CalculateAge()
         };
     }
 
@@ -137,7 +152,8 @@ public class FamilyService : IFamilyService
             {
                 Id = f.Id,
                 Name = f.Name,
-                Age = f.Age
+                Birthdate = f.Birthdate,
+                Age = f.CalculateAge()
             }).ToList(),
             TotalCount = totalCount,
             Page = page,
@@ -169,9 +185,23 @@ public class FamilyService : IFamilyService
             throw new BusinessException("FAMILIAR_NOT_FOUND", "Familiar não encontrado.");
         }
 
-        // 3. Atualizar e persistir as alterações
+        // 3. Validar data de nascimento
+        var birthdate = DateTime.SpecifyKind(request.Birthdate.Date, DateTimeKind.Utc);
+        var today = DateTime.UtcNow.Date;
+        if (birthdate > today)
+        {
+            throw new BusinessException("INVALID_BIRTHDATE", "A data de nascimento não pode ser uma data futura.");
+        }
+        var age = today.Year - birthdate.Year;
+        if (birthdate > today.AddYears(-age)) age--;
+        if (age > 150)
+        {
+            throw new BusinessException("INVALID_BIRTHDATE", "A data de nascimento informada resulta em uma idade superior a 150 anos.");
+        }
+
+        // 4. Atualizar e persistir as alterações
         familiar.Name = request.Name;
-        familiar.Age = request.Age;
+        familiar.Birthdate = birthdate;
 
         await _familyRepository.SaveChangesAsync();
 
@@ -179,7 +209,8 @@ public class FamilyService : IFamilyService
         {
             Id = familiar.Id,
             Name = familiar.Name,
-            Age = familiar.Age
+            Birthdate = familiar.Birthdate,
+            Age = familiar.CalculateAge()
         };
     }
 
