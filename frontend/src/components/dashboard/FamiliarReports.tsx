@@ -155,6 +155,21 @@ export function FamiliarReports({
     })).sort((a, b) => b.expense - a.expense); // Ordenado por quem gastou mais
   }, [familiars, normalizedTransactions, selectedCategory, selectedType, startDate, endDate]);
 
+  // Totais gerais de todas as pessoas
+  const generalTotals = useMemo(() => {
+    let income = 0;
+    let expense = 0;
+    memberSummaries.forEach(m => {
+      income += m.income;
+      expense += m.expense;
+    });
+    return {
+      income,
+      expense,
+      balance: income - expense
+    };
+  }, [memberSummaries]);
+
   // Dados para o Gráfico em Linha (SVG)
   const chartData = useMemo<DataPoint[]>(() => {
     if (filteredTransactions.length === 0) return [];
@@ -695,32 +710,52 @@ export function FamiliarReports({
             {memberSummaries.length === 0 ? (
               <p className="text-xs text-muted-foreground text-center py-6 px-4">Nenhum membro cadastrado.</p>
             ) : (
-              <div className="divide-y divide-border/60">
-                {memberSummaries.map(member => (
-                  <div
-                    key={member.id}
-                    onClick={() => setSelectedFamiliarId(selectedFamiliarId === member.id ? "all" : member.id)}
-                    className={`p-3.5 flex flex-col gap-1 transition-colors cursor-pointer hover:bg-muted/10 ${
-                      selectedFamiliarId === member.id ? "bg-primary/5 border-l-2 border-primary" : ""
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-foreground">{member.name}</span>
-                      <span className={`text-xs font-bold ${member.balance >= 0 ? "text-emerald-700" : "text-destructive"}`}>
-                        {formatBRL(member.balance)}
-                      </span>
+              <>
+                <div className="divide-y divide-border/60 max-h-75 overflow-y-auto">
+                  {memberSummaries.map(member => (
+                    <div
+                      key={member.id}
+                      onClick={() => setSelectedFamiliarId(selectedFamiliarId === member.id ? "all" : member.id)}
+                      className={`p-3.5 flex flex-col gap-1 transition-colors cursor-pointer hover:bg-muted/10 ${
+                        selectedFamiliarId === member.id ? "bg-primary/5 border-l-2 border-primary" : ""
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-foreground">{member.name}</span>
+                        <span className={`text-xs font-bold ${member.balance >= 0 ? "text-emerald-700" : "text-destructive"}`}>
+                          {formatBRL(member.balance)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                        <span className="flex items-center gap-0.5 text-emerald-650 font-medium">
+                          <IncomeIcon className="size-3" /> {formatBRL(member.income)}
+                        </span>
+                        <span className="flex items-center gap-0.5 font-medium">
+                          <ExpenseIcon className="size-3 text-rose-500" /> {formatBRL(member.expense)}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                      <span className="flex items-center gap-0.5 text-emerald-650 font-medium">
-                        <IncomeIcon className="size-3" /> {formatBRL(member.income)}
-                      </span>
-                      <span className="flex items-center gap-0.5 font-medium">
-                        <ExpenseIcon className="size-3 text-rose-500" /> {formatBRL(member.expense)}
-                      </span>
-                    </div>
+                  ))}
+                </div>
+
+                {/* Total Geral de todas as pessoas */}
+                <div className="p-4 bg-muted/40 border-t border-border flex flex-col gap-2 rounded-b-xl">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-foreground">Total Geral (Membros)</span>
+                    <span className={`text-xs font-extrabold ${generalTotals.balance >= 0 ? "text-emerald-700" : "text-destructive"}`}>
+                      {formatBRL(generalTotals.balance)}
+                    </span>
                   </div>
-                ))}
-              </div>
+                  <div className="flex items-center justify-between text-[10px] text-muted-foreground font-semibold">
+                    <span className="flex items-center gap-1 text-emerald-650">
+                      <IncomeIcon className="size-3.5" /> Receitas: {formatBRL(generalTotals.income)}
+                    </span>
+                    <span className="flex items-center gap-1 text-rose-650">
+                      <ExpenseIcon className="size-3.5 text-rose-500" /> Despesas: {formatBRL(generalTotals.expense)}
+                    </span>
+                  </div>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>
