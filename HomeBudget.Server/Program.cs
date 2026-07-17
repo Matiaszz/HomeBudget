@@ -34,8 +34,10 @@ builder.Services.AddDbContext<AppDbContext>(
 // Dependency injections
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IFamilyRepository, FamilyRepository>();
+builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IFamilyService, FamilyService>();
+builder.Services.AddScoped<ITransactionService, TransactionService>();
 
 // auth
 var jwtKey = builder.Configuration.GetValue<string>("Jwt:Secret");

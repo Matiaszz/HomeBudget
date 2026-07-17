@@ -1,0 +1,7 @@
+- Aplicar regra da idade para familiares
+- Adicionar formatador de dinheiro no registro da transação
+- Adicionar Familiar no registro de transação (Receita)
+- Corrigir erro unhandled ao enviar o registro de transação
+- Colocar Data de nascimento no Familiar em vez de idade inteira.
+- Substituir alerts no frontend por erros amigaveis.
+- Tirar "Deletar" uma transação do frontend (não deve existir nem existe mais o endpoint)

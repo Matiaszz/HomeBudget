@@ -46,6 +46,15 @@ export default function App() {
 
   // Transaction states
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  
+  // Consolidação orçamentária do ledger (para resumos e gráficos)
+  const [budgetSummary, setBudgetSummary] = useState<{
+    totalIncome: number;
+    totalExpense: number;
+    netBalance: number;
+    familiarExpenses: { familiarId: string; familiarName: string; totalExpense: number }[];
+    categoryExpenses: { category: string; totalAmount: number }[];
+  } | null>(null);
 
   // Feedback states
   const [loading, setLoading] = useState(false);
@@ -115,6 +124,26 @@ export default function App() {
     }
   };
 
+  // Fetch transactions from backend (ledger)
+  const fetchTransactions = async (familyId: string) => {
+    try {
+      const response = await apiRequest<Transaction[]>(`/api/families/${familyId}/transactions`);
+      setTransactions(response);
+    } catch (err) {
+      console.error("Erro ao carregar transações", err);
+    }
+  };
+
+  // Fetch consolidated budget summary (ledger running calculations & chart aggregates)
+  const fetchBudgetSummary = async (familyId: string) => {
+    try {
+      const response = await apiRequest<typeof budgetSummary>(`/api/families/${familyId}/transactions/summary`);
+      setBudgetSummary(response);
+    } catch (err) {
+      console.error("Erro ao carregar consolidação orçamentária", err);
+    }
+  };
+
   // Load user data and state on mount
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
@@ -122,22 +151,6 @@ export default function App() {
     if (storedToken && storedUser) {
       const parsedUser = JSON.parse(storedUser) as UserDto;
       setUser(parsedUser);
-      
-      // Load transactions
-      const storedTxs = localStorage.getItem(`transactions_${parsedUser.id}`);
-      if (storedTxs) {
-        setTransactions(JSON.parse(storedTxs));
-      } else {
-        const seed: Transaction[] = [
-          { id: "1", description: "Supermercado Semanal", amount: 184.50, type: "expense", category: "Alimentação", date: new Date().toISOString().split("T")[0] },
-          { id: "3", description: "Assinatura Netflix", amount: 55.90, type: "expense", category: "Lazer", date: new Date().toISOString().split("T")[0] }
-        ];
-        if (parsedUser.canHaveIncome) {
-          seed.push({ id: "2", description: "Salário Mensal", amount: 2500.00, type: "income", category: "Trabalho", date: new Date().toISOString().split("T")[0] });
-        }
-        setTransactions(seed);
-        localStorage.setItem(`transactions_${parsedUser.id}`, JSON.stringify(seed));
-      }
     }
   }, []);
 
@@ -152,6 +165,8 @@ export default function App() {
         setSelectedFamily(family);
         setFamiliarsPage(1);
         fetchFamiliars(family.id, 1);
+        fetchTransactions(family.id);
+        fetchBudgetSummary(family.id);
       }
     } else {
       setFamilies([]);
@@ -205,21 +220,6 @@ export default function App() {
       
       setUser(response.user);
       setSuccess(`Bem-vindo de volta, ${response.user.nome}!`);
-      
-      const storedTxs = localStorage.getItem(`transactions_${response.user.id}`);
-      if (storedTxs) {
-        setTransactions(JSON.parse(storedTxs));
-      } else {
-        const seed: Transaction[] = [
-          { id: "1", description: "Supermercado Semanal", amount: 184.50, type: "expense", category: "Alimentação", date: new Date().toISOString().split("T")[0] },
-          { id: "3", description: "Assinatura Netflix", amount: 55.90, type: "expense", category: "Lazer", date: new Date().toISOString().split("T")[0] }
-        ];
-        if (response.user.canHaveIncome) {
-          seed.push({ id: "2", description: "Salário Mensal", amount: 2500.00, type: "income", category: "Trabalho", date: new Date().toISOString().split("T")[0] });
-        }
-        setTransactions(seed);
-        localStorage.setItem(`transactions_${response.user.id}`, JSON.stringify(seed));
-      }
     } catch (err) {
       if (err instanceof ApiError) {
         setError(getFriendlyErrorMessage(err.errorCode, err.errorMessage));
@@ -273,6 +273,8 @@ export default function App() {
     }
     setFamiliarsPage(1);
     fetchFamiliars(family.id, 1);
+    fetchTransactions(family.id);
+    fetchBudgetSummary(family.id);
   };
 
   const handleCreateFamily = async (name: string) => {
@@ -432,18 +434,44 @@ export default function App() {
     setFamiliarsPage(1);
     setFamiliarsTotalPages(1);
     setFamiliarsTotalCount(0);
+    setBudgetSummary(null);
   };
 
-  const handleAddTransaction = (tx: { description: string; amount: number; type: "income" | "expense"; category: string; date: string }) => {
-    if (!user) return;
-    const newTx: Transaction = {
-      id: crypto.randomUUID(),
-      ...tx,
-    };
-
-    const updated = [newTx, ...transactions];
-    setTransactions(updated);
-    localStorage.setItem(`transactions_${user.id}`, JSON.stringify(updated));
+  const handleAddTransaction = async (tx: { 
+    description: string; 
+    amount: number; 
+    type: "income" | "expense"; 
+    category: string; 
+    date: string; 
+    familiarId?: string; 
+  }) => {
+    if (!selectedFamily) return;
+    setLoading(true);
+    setError(null);
+    try {
+      await apiRequest<any>(`/api/families/${selectedFamily.id}/transactions`, {
+        method: "POST",
+        body: JSON.stringify({
+          description: tx.description,
+          amount: tx.amount,
+          type: tx.type,
+          category: tx.category,
+          date: tx.date,
+          familiarId: tx.familiarId || null
+        }),
+      });
+      setSuccess("Transação adicionada com sucesso!");
+      await fetchTransactions(selectedFamily.id);
+      await fetchBudgetSummary(selectedFamily.id);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(getFriendlyErrorMessage(err.errorCode, err.errorMessage));
+      } else {
+        setError("Erro ao adicionar transação.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleUpdateProfile = (e: React.FormEvent) => {
@@ -558,7 +586,7 @@ export default function App() {
         </main>
 
         {/* Footer */}
-        <footer className="border-t border-border/60 py-6 text-center text-xs text-muted-foreground bg-muted/30 z-10 shrink-0">
+        <footer className="border-t border-border/60 py-6 text-center text-xs text-muted-foreground bg-muted/30 shrink-0">
           <p>&copy; {new Date().getFullYear()} HomeBudget. Todos os direitos reservados.</p>
           <p className="mt-1 text-muted-foreground/80">Desenvolvido com .NET 10, .NET Aspire, React e Tailwind CSS v4.</p>
         </footer>
@@ -629,7 +657,7 @@ export default function App() {
           </div>
         </main>
 
-        <footer className="border-t border-border/60 py-6 text-center text-xs text-muted-foreground bg-muted/30 z-10">
+        <footer className="border-t border-border/60 py-6 text-center text-xs text-muted-foreground bg-muted/30">
           <p>&copy; {new Date().getFullYear()} HomeBudget. Todos os direitos reservados.</p>
           <p className="mt-1 text-muted-foreground/80">Desenvolvido com .NET 10, .NET Aspire, React e Tailwind CSS v4.</p>
         </footer>
@@ -769,6 +797,8 @@ export default function App() {
                 <TransactionsManager
                   user={user}
                   transactions={transactions}
+                  familiars={familiars}
+                  summary={budgetSummary}
                   onAddTransaction={handleAddTransaction}
                 />
               </div>
@@ -851,7 +881,7 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-border/60 py-6 text-center text-xs text-muted-foreground bg-muted/30 z-10">
+      <footer className="border-t border-border/60 py-6 text-center text-xs text-muted-foreground bg-muted/30">
         <p>&copy; {new Date().getFullYear()} HomeBudget. Todos os direitos reservados.</p>
         <p className="mt-1 text-muted-foreground/80">Desenvolvido com .NET 10, .NET Aspire, React e Tailwind CSS v4.</p>
       </footer>

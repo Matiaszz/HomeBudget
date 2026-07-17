@@ -3,6 +3,7 @@ using HomeBudget.Server.Models;
 using HomeBudget.Server.Models.Requests;
 using HomeBudget.Server.Models.Responses;
 using HomeBudget.Server.Repositories;
+using HomeBudget.Server.Repositories.Contracts;
 using HomeBudget.Server.Services.Contracts;
 
 namespace HomeBudget.Server.Services;

@@ -6,8 +6,8 @@ import { Users, Plus, UserCheck, Pencil, Trash, Check, X, ChevronLeft, ChevronRi
 
 export interface Familiar {
   id: string;
-  nome: string;
-  idade: number;
+  name: string;
+  age: number;
 }
 
 export interface PagedResult<T> {
@@ -69,8 +69,8 @@ export function FamiliarsManager({
   // Prepara o estado para iniciar a edição inline de um familiar
   const handleStartEdit = (f: Familiar) => {
     setEditingId(f.id);
-    setEditNome(f.nome);
-    setEditIdade(f.idade.toString());
+    setEditNome(f.name);
+    setEditIdade(f.age.toString());
     setDeletingId(null); // Cancela qualquer intenção de exclusão pendente
   };
 
@@ -182,8 +182,8 @@ export function FamiliarsManager({
                       <UserCheck className="size-4" />
                     </div>
                     <div>
-                      <p className="font-semibold text-foreground text-sm">{f.nome}</p>
-                      <p className="text-xs text-muted-foreground">{f.idade} {f.idade === 1 ? 'ano' : 'anos'}</p>
+                      <p className="font-semibold text-foreground text-sm">{f.name}</p>
+                      <p className="text-xs text-muted-foreground">{f.age} {f.age === 1 ? 'ano' : 'anos'}</p>
                     </div>
                   </div>
 

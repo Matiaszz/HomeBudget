@@ -23,7 +23,7 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An unhandled exception occurred.");
+            _logger.LogError(ex, "An unhandled exception occurred." + ex);
             await HandleExceptionAsync(context, HttpStatusCode.InternalServerError, "UNKNOWN_ERROR", "Ocorreu um erro inesperado. Tente novamente mais tarde.");
         }
     }
