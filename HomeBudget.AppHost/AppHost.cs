@@ -1,6 +1,3 @@
-using System.ComponentModel;
-using Microsoft.Extensions.Configuration;
-
 var builder = DistributedApplication.CreateBuilder(args);
 
 
@@ -10,7 +7,7 @@ var server = builder.AddProject<Projects.HomeBudget_Server>("server")
     .WithExternalHttpEndpoints();
 
 
-var db = builder.AddPostgres("postgres");
+builder.AddPostgres("postgres");
 
 var webfrontend = builder.AddViteApp("webfrontend", "../frontend")
     .WithReference(server)
