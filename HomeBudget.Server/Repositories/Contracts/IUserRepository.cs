@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 using HomeBudget.Server.Models;
 
-namespace HomeBudget.Server.Repositories;
+namespace HomeBudget.Server.Repositories.Contracts;
 
 // Interface para definir as operações com a entidade User
 public interface IUserRepository

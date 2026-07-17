@@ -16,14 +16,9 @@ namespace HomeBudget.Server.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class FamiliesController : ControllerBase
+public class FamiliesController(IFamilyService familyService) : ControllerBase
 {
-    private readonly IFamilyService _familyService;
-
-    public FamiliesController(IFamilyService familyService)
-    {
-        _familyService = familyService;
-    }
+    private readonly IFamilyService _familyService = familyService;
 
     [HttpGet]
     public async Task<ActionResult<ApiResponse<List<FamilyDto>>>> GetUserFamilies()

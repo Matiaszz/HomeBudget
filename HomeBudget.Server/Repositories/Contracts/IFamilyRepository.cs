@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using HomeBudget.Server.Models;
 
-namespace HomeBudget.Server.Repositories;
+namespace HomeBudget.Server.Repositories.Contracts;
 
 public interface IFamilyRepository
 {

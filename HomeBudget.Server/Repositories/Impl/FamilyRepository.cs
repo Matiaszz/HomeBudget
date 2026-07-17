@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using HomeBudget.Server.Data;
 using HomeBudget.Server.Models;
+using HomeBudget.Server.Repositories.Contracts;
 
 namespace HomeBudget.Server.Repositories.Impl;
 

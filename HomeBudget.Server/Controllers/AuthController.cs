@@ -11,14 +11,9 @@ namespace HomeBudget.Server.Controllers;
 // Controlador responsável pelas ações de autenticação (Cadastro e Login)
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController : ControllerBase
+public class AuthController(IAuthService authService) : ControllerBase
 {
-    private readonly IAuthService _authService;
-
-    public AuthController(IAuthService authService)
-    {
-        _authService = authService;
-    }
+    private readonly IAuthService _authService = authService;
 
     // Endpoint POST: api/auth/register - Registra um novo usuário no sistema
     [HttpPost("register")]
