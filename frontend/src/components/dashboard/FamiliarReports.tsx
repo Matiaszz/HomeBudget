@@ -15,8 +15,8 @@ import {
   TrendingUp as IncomeIcon,
   TrendingDown as ExpenseIcon
 } from "lucide-react";
-import { type Transaction } from "@/components/dashboard/TransactionsManager";
-import { type Familiar } from "@/components/family/FamiliarsManager";
+import { type Transaction, type Familiar } from "@/types";
+import { formatBRL } from "@/utils/finance";
 
 interface FamiliarReportsProps {
   familiars: Familiar[];
@@ -277,10 +277,7 @@ export function FamiliarReports({
     return `${linePath} L ${lastPoint.x} ${bottomY} L ${firstPoint.x} ${bottomY} Z`;
   }, [chartCoordinates, expensePathD]);
 
-  // Formatação de dinheiro BRL
-  const formatBRL = (cents: number) => {
-    return (cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-  };
+
 
   // Limpa todos os filtros
   const handleClearFilters = () => {

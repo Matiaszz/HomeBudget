@@ -4,20 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Users, Plus, UserCheck, Pencil, Trash, Check, X, ChevronLeft, ChevronRight, ShieldAlert } from "lucide-react";
 
-export interface Familiar {
-  id: string;
-  name: string;
-  age: number;
-  birthdate: string; // ISO date string from API
-}
-
-export interface PagedResult<T> {
-  items: T[];
-  totalCount: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
-}
+import { type Familiar } from "@/types";
 
 interface FamiliarsManagerProps {
   familiars: Familiar[];

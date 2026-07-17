@@ -14,82 +14,24 @@ import {
 import { LoginView } from "@/components/auth/LoginView";
 import { RegisterView } from "@/components/auth/RegisterView";
 import { AuthVisualNarrative } from "@/components/auth/AuthVisualNarrative";
-import { TransactionsManager, type Transaction, type UserDto } from "@/components/dashboard/TransactionsManager";
+import { TransactionsManager } from "@/components/dashboard/TransactionsManager";
 import { FamilySelectionView } from "@/components/family/FamilySelectionView";
-import { FamiliarsManager, type Familiar, type PagedResult } from "@/components/family/FamiliarsManager";
+import { FamiliarsManager } from "@/components/family/FamiliarsManager";
 import { FormField } from "@/components/auth/FormField";
 import { FamiliarReports } from "@/components/dashboard/FamiliarReports";
+import { 
+  type Family, 
+  type UserDto, 
+  type Transaction, 
+  type Familiar, 
+  type PagedResult 
+} from "@/types";
+import { recalculateSummary } from "@/utils/finance";
 
 interface LoginResponse {
   token: string;
   user: UserDto;
 }
-
-interface Family {
-  id: string;
-  name: string;
-}
-
-const recalculateSummary = (txs: Transaction[]) => {
-  const totalIncome = txs.filter(t => t.type === "income").reduce((sum, t) => sum + t.amount, 0);
-  const totalExpense = txs.filter(t => t.type === "expense").reduce((sum, t) => sum + t.amount, 0);
-  const netBalance = totalIncome - totalExpense;
-
-  const familiarExpensesMap = new Map<string, { name: string; total: number }>();
-  const categoryExpensesMap = new Map<string, number>();
-  const familiarSummariesMap = new Map<string, { name: string; income: number; expense: number }>();
-
-  txs.forEach(t => {
-    const fid = t.familiarId || "unknown";
-    const fname = t.familiarName || "Desconhecido";
-    
-    if (t.type === "expense") {
-      categoryExpensesMap.set(t.category, (categoryExpensesMap.get(t.category) || 0) + t.amount);
-      if (t.familiarId) {
-        const current = familiarExpensesMap.get(fid) || { name: fname, total: 0 };
-        familiarExpensesMap.set(fid, { name: fname, total: current.total + t.amount });
-      }
-    }
-
-    if (t.familiarId) {
-      const current = familiarSummariesMap.get(fid) || { name: fname, income: 0, expense: 0 };
-      if (t.type === "income") {
-        current.income += t.amount;
-      } else {
-        current.expense += t.amount;
-      }
-      familiarSummariesMap.set(fid, current);
-    }
-  });
-
-  const familiarExpenses = Array.from(familiarExpensesMap.entries()).map(([id, data]) => ({
-    familiarId: id,
-    familiarName: data.name,
-    totalExpense: data.total
-  }));
-
-  const categoryExpenses = Array.from(categoryExpensesMap.entries()).map(([cat, total]) => ({
-    category: cat,
-    totalAmount: total
-  }));
-
-  const familiarSummaries = Array.from(familiarSummariesMap.entries()).map(([id, data]) => ({
-    familiarId: id,
-    familiarName: data.name,
-    totalIncome: data.income,
-    totalExpense: data.expense,
-    netBalance: data.income - data.expense
-  }));
-
-  return {
-    totalIncome,
-    totalExpense,
-    netBalance,
-    familiarExpenses,
-    categoryExpenses,
-    familiarSummaries
-  };
-};
 
 export default function App() {
   // Authentication states

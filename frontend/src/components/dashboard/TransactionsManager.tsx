@@ -16,41 +16,14 @@ import {
   ChevronDown,
   ShieldAlert
 } from "lucide-react";
-import { type Familiar } from "@/components/family/FamiliarsManager";
-
-export interface UserDto {
-  id: string;
-  name: string;
-  email: string;
-  birthdate: string;
-  canHaveIncome: boolean;
-}
-
-export interface Transaction {
-  id: string;
-  description: string;
-  amount: number; // Em centavos
-  type: "income" | "expense";
-  category: string;
-  date: string;
-  familiarId?: string;
-  familiarName?: string;
-  lastIncomeRegister: number; // Em centavos
-  lastExpenseRegister: number; // Em centavos
-}
+import { type Familiar, type UserDto, type Transaction, type FamilyBudgetSummaryDto } from "@/types";
+import { formatCurrencyInput } from "@/utils/finance";
 
 interface TransactionsManagerProps {
   user: UserDto;
   transactions: Transaction[];
   familiars: Familiar[];
-  summary: {
-    totalIncome: number;
-    totalExpense: number;
-    netBalance: number;
-    familiarExpenses: { familiarId: string; familiarName: string; totalExpense: number }[];
-    categoryExpenses: { category: string; totalAmount: number }[];
-    familiarSummaries: { familiarId: string; familiarName: string; totalIncome: number; totalExpense: number; netBalance: number }[];
-  } | null;
+  summary: FamilyBudgetSummaryDto | null;
   onAddTransaction: (tx: { 
     description: string; 
     amount: number; // Em centavos
@@ -60,19 +33,6 @@ interface TransactionsManagerProps {
     familiarId?: string; 
   }) => Promise<void>;
   onGoToReports: () => void;
-}
-
-// Formata um valor monetário em reais (ex: "1.500,00")
-function formatCurrencyInput(value: string): string {
-  // Remove tudo que não é dígito
-  const digits = value.replace(/\D/g, "");
-  if (!digits) return "";
-  // Interpreta os últimos 2 dígitos como centavos
-  const cents = parseInt(digits, 10);
-  return (cents / 100).toLocaleString("pt-BR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
 }
 
 export function TransactionsManager({
