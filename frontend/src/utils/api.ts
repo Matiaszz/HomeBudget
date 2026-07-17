@@ -192,12 +192,19 @@ export async function apiRequest<T>(
     if (error instanceof ApiError) {
       throw error;
     }
-    
-    if (error instanceof Error && error.name === 'AbortError') {
-      throw new ApiError('TIMEOUT_ERROR', 'A requisição excedeu o tempo limite. Verifique sua conexão.', 408);
+
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new ApiError(
+        "TIMEOUT_ERROR",
+        "A requisição excedeu o tempo limite. Verifique sua conexão.",
+        408,
+      );
     }
 
-    throw new ApiError('NETWORK_ERROR', 'Não foi possível conectar ao servidor. Verifique sua conexão.');
+    throw new ApiError(
+      "NETWORK_ERROR",
+      "Não foi possível conectar ao servidor. Verifique sua conexão.",
+    );
   } finally {
     clearTimeout(timeoutId);
   }

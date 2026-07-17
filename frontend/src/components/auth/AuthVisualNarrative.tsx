@@ -9,9 +9,9 @@ import {
 
 export function AuthVisualNarrative() {
   return (
-    <div className="relative w-full h-full flex flex-col justify-center p-8 lg:p-12 overflow-hidden bg-gradient-to-tr from-muted/30 via-background to-muted/20 select-none">
+    <div className="relative w-full h-full flex flex-col justify-center p-8 lg:p-12 overflow-hidden bg-linear-to-tr from-muted/30 via-background to-muted/20 select-none">
       {/* Decorative Grid Backdrop */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--color-border)_1px,transparent_1px),linear-gradient(to_bottom,var(--color-border)_1px,transparent_1px)] bg-[size:3.5rem_3.5rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_40%,#000_70%,transparent_100%)] opacity-60" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--color-border)_1px,transparent_1px),linear-gradient(to_bottom,var(--color-border)_1px,transparent_1px)] bg-bg-size-[3.5rem_3.5rem] mask-[radial-gradient(ellipse_60%_50%_at_50%_40%,#000_70%,transparent_100%)] opacity-60" />
       
       {/* Background soft light highlights */}
       <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-primary/5 blur-3xl" />
@@ -60,7 +60,7 @@ export function AuthVisualNarrative() {
               <p className="text-sm font-bold mt-1 text-foreground">R$ 3.840,00</p>
             </div>
             <div className="border border-border bg-card p-2 rounded-lg">
-              <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-wider text-emerald-600">Receitas</span>
+              <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-wider">Receitas</span>
               <p className="text-sm font-bold mt-1 text-emerald-600">R$ 5.000,00</p>
             </div>
             <div className="border border-border bg-card p-2 rounded-lg">
