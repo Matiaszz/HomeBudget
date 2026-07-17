@@ -145,4 +145,36 @@ public class FamilyService : IFamilyService
         _familyRepository.DeleteFamiliar(familiar);
         await _familyRepository.SaveChangesAsync();
     }
+
+    public async Task<FamilyDto> UpdateFamilyAsync(Guid userId, Guid id, UpdateFamilyRequest request)
+    {
+        var userFamilies = await _familyRepository.GetUserFamiliesAsync(userId);
+        var family = userFamilies.FirstOrDefault(f => f.Id == id);
+        if (family == null)
+        {
+            throw new BusinessException("FAMILY_NOT_FOUND", "Família não encontrada ou você não tem permissão para acessá-la.");
+        }
+
+        family.Name = request.Name;
+        await _familyRepository.SaveChangesAsync();
+
+        return new FamilyDto
+        {
+            Id = family.Id,
+            Name = family.Name
+        };
+    }
+
+    public async Task DeleteFamilyAsync(Guid userId, Guid id)
+    {
+        var userFamilies = await _familyRepository.GetUserFamiliesAsync(userId);
+        var family = userFamilies.FirstOrDefault(f => f.Id == id);
+        if (family == null)
+        {
+            throw new BusinessException("FAMILY_NOT_FOUND", "Família não encontrada ou você não tem permissão para acessá-la.");
+        }
+
+        _familyRepository.DeleteFamily(family);
+        await _familyRepository.SaveChangesAsync();
+    }
 }

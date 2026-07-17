@@ -41,6 +41,22 @@ public class FamiliesController : ControllerBase
         return Ok(ApiResponse<FamilyDto>.Ok(result));
     }
 
+    [HttpPut("{id:guid}")]
+    public async Task<ActionResult<ApiResponse<FamilyDto>>> UpdateFamily(Guid id, UpdateFamilyRequest request)
+    {
+        var userId = GetUserId();
+        var result = await _familyService.UpdateFamilyAsync(userId, id, request);
+        return Ok(ApiResponse<FamilyDto>.Ok(result));
+    }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<ActionResult<ApiResponse>> DeleteFamily(Guid id)
+    {
+        var userId = GetUserId();
+        await _familyService.DeleteFamilyAsync(userId, id);
+        return Ok(ApiResponse.Ok());
+    }
+
     [HttpPost("{familyId:guid}/familiars")]
     public async Task<ActionResult<ApiResponse<FamiliarDto>>> CreateFamiliar(Guid familyId, CreateFamiliarRequest request)
     {

@@ -289,6 +289,54 @@ export default function App() {
     }
   };
 
+  const handleUpdateFamily = async (id: string, name: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const updatedFamily = await apiRequest<Family>(`/api/families/${id}`, {
+        method: "PUT",
+        body: JSON.stringify({ nome: name }),
+      });
+      setFamilies((prev) => prev.map((f) => (f.id === id ? updatedFamily : f)));
+      if (selectedFamily && selectedFamily.id === id) {
+        setSelectedFamily(updatedFamily);
+      }
+      setSuccess("Família atualizada com sucesso!");
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(getFriendlyErrorMessage(err.errorCode, err.errorMessage));
+      } else {
+        setError("Erro ao atualizar família.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteFamily = async (id: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      await apiRequest<void>(`/api/families/${id}`, {
+        method: "DELETE",
+      });
+      setFamilies((prev) => prev.filter((f) => f.id !== id));
+      if (selectedFamily && selectedFamily.id === id) {
+        setSelectedFamily(null);
+        setFamiliars([]);
+      }
+      setSuccess("Família excluída com sucesso!");
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(getFriendlyErrorMessage(err.errorCode, err.errorMessage));
+      } else {
+        setError("Erro ao excluir família.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCreateFamiliar = async (nome: string, idade: number) => {
     if (!selectedFamily) return;
     setLoading(true);
@@ -549,6 +597,8 @@ export default function App() {
               families={families}
               onSelectFamily={handleSelectFamily}
               onCreateFamily={handleCreateFamily}
+              onUpdateFamily={handleUpdateFamily}
+              onDeleteFamily={handleDeleteFamily}
               loading={loading}
               onLogout={handleLogout}
             />

@@ -60,6 +60,11 @@ public class FamilyRepository(AppDbContext context) : IFamilyRepository
         _context.Familiars.Remove(familiar);
     }
 
+    public void DeleteFamily(Family family)
+    {
+        _context.Families.Remove(family);
+    }
+
     public async Task SaveChangesAsync()
     {
         await _context.SaveChangesAsync();

@@ -11,4 +11,6 @@ public interface IFamilyService
     Task<List<FamiliarDto>> GetFamiliarsAsync(Guid familyId);
     Task<FamiliarDto> UpdateFamiliarAsync(Guid familyId, Guid id, UpdateFamiliarRequest request);
     Task DeleteFamiliarAsync(Guid familyId, Guid id);
+    Task<FamilyDto> UpdateFamilyAsync(Guid userId, Guid id, UpdateFamilyRequest request);
+    Task DeleteFamilyAsync(Guid userId, Guid id);
 }

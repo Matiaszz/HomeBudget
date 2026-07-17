@@ -15,5 +15,6 @@ public interface IFamilyRepository
     Task<Family?> GetFamilyByIdAsync(Guid id);
     Task<Familiar?> GetFamiliarByIdAsync(Guid id);
     void DeleteFamiliar(Familiar familiar);
+    void DeleteFamily(Family family);
     Task SaveChangesAsync();
 }
