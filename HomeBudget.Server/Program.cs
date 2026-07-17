@@ -1,11 +1,13 @@
-
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
-using Npgsql.Replication.PgOutput;
 using HomeBudget.Server.Data;
-using Microsoft.AspNetCore.Http.HttpResults;
+using HomeBudget.Server.Services;
+using HomeBudget.Server.Repositories;
+using HomeBudget.Server.Services.Contracts;
+using HomeBudget.Server.Services.Impl;
+using HomeBudget.Server.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +21,7 @@ builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
 
 var dbConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+Console.WriteLine($"Connection: {dbConnectionString}");
 
 builder.Services.AddDbContext<AppDbContext>(
     opt => opt.UseNpgsql(
@@ -26,9 +29,11 @@ builder.Services.AddDbContext<AppDbContext>(
     )
 );
 
-
 // Dependency injections
-// builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IFamilyRepository, FamilyRepository>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IFamilyService, FamilyService>();
 
 // auth
 var jwtKey = builder.Configuration.GetValue<string>("Jwt:Secret");
@@ -59,6 +64,9 @@ builder.Services.AddControllers();
 
 var app = builder.Build();
 
+app.MapDefaultEndpoints();
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 // Configure the HTTP request pipeline.
 app.UseExceptionHandler();
@@ -72,5 +80,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
 
 app.Run();
