@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Users, Plus, UserCheck, Pencil, Trash, Check, X, ChevronLeft, ChevronRight, ShieldAlert } from "lucide-react";
 
 import { type Familiar } from "@/types";
+import { getLocalDateString } from "@/utils/finance";
+
 
 interface FamiliarsManagerProps {
   familiars: Familiar[];
@@ -18,13 +20,7 @@ interface FamiliarsManagerProps {
   onPageChange: (page: number) => void;
 }
 
-// Maximum allowed birthdate = today (local time)
-const getLocalDateString = (d = new Date()) => {
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
+
 
 const todayStr = getLocalDateString();
 

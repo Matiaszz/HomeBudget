@@ -87,11 +87,7 @@ public class FamilyService : IFamilyService
     public async Task<FamiliarDto> CreateFamiliarAsync(Guid familyId, CreateFamiliarRequest request)
     {
         // 1. Verificar se a família informada existe
-        var family = await _familyRepository.GetFamilyByIdAsync(familyId);
-        if (family == null)
-        {
-            throw new BusinessException("FAMILY_NOT_FOUND", "Família não encontrada.");
-        }
+        var family = await _familyRepository.GetFamilyByIdAsync(familyId) ?? throw new BusinessException("FAMILY_NOT_FOUND", "Família não encontrada.");
 
         // 2. Validar data de nascimento
         var birthdate = DateTime.SpecifyKind(request.Birthdate.Date, DateTimeKind.Utc);

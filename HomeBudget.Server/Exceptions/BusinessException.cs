@@ -1,4 +1,3 @@
-using System;
 using System.Net;
 
 namespace HomeBudget.Server.Exceptions;
@@ -24,7 +23,7 @@ public class BusinessException : Exception
     /// <param name="errorCode">Código de erro comercial.</param>
     /// <param name="message">Mensagem descritiva da exceção.</param>
     /// <param name="statusCode">Status HTTP associado à resposta (padrão BadRequest).</param>
-    public BusinessException(string errorCode, string message, HttpStatusCode statusCode = HttpStatusCode.BadRequest) 
+    public BusinessException(string errorCode, string message, HttpStatusCode statusCode = HttpStatusCode.BadRequest)
         : base(message)
     {
         ErrorCode = errorCode;

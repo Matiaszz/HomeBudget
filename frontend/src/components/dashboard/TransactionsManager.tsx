@@ -17,7 +17,8 @@ import {
   ShieldAlert
 } from "lucide-react";
 import { type Familiar, type UserDto, type Transaction, type FamilyBudgetSummaryDto } from "@/types";
-import { formatCurrencyInput } from "@/utils/finance";
+import { formatCurrencyInput, getLocalDateString } from "@/utils/finance";
+
 
 interface TransactionsManagerProps {
   user: UserDto;
@@ -46,15 +47,8 @@ export function TransactionsManager({
   // Controle de abertura do modal flutuante de transação
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Helper local para obter data local em YYYY-MM-DD
-  const getLocalDateString = (d = new Date()) => {
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
-
   const todayStr = getLocalDateString();
+
 
   // Estados do formulário de transação
   const [txDescription, setTxDescription] = useState("");

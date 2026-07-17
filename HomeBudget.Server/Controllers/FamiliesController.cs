@@ -1,15 +1,12 @@
-using System;
-using System.Collections.Generic;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using HomeBudget.Server.Exceptions;
 using HomeBudget.Server.Models;
 using HomeBudget.Server.Models.Requests;
 using HomeBudget.Server.Models.Responses;
-using HomeBudget.Server.Services;
 using HomeBudget.Server.Services.Contracts;
+using System.Net;
 
 namespace HomeBudget.Server.Controllers;
 
@@ -126,6 +123,7 @@ public class FamiliesController(IFamilyService familyService) : ControllerBase
     /// <param name="id">Identificador único do familiar.</param>
     /// <returns>Uma resposta padrão de sucesso.</returns>
     [HttpDelete("{familyId:guid}/familiars/{id:guid}")]
+    [Authorize]
     public async Task<ActionResult<ApiResponse>> DeleteFamiliar(Guid familyId, Guid id)
     {
         await _familyService.DeleteFamiliarAsync(familyId, id);
@@ -142,7 +140,7 @@ public class FamiliesController(IFamilyService familyService) : ControllerBase
         var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userId))
         {
-            throw new BusinessException("UNAUTHORIZED", "Usuário não autenticado ou inválido.", System.Net.HttpStatusCode.Unauthorized);
+            throw new BusinessException("UNAUTHORIZED", "Usuário não autenticado ou inválido.", HttpStatusCode.Unauthorized);
         }
         return userId;
     }

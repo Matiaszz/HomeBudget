@@ -55,18 +55,26 @@ export function FamiliarReports({
     point: DataPoint;
   } | null>(null);
 
+  // Normaliza as datas das transações removendo a parte de hora/UTC (T00:00:00Z)
+  const normalizedTransactions = useMemo(() => {
+    return transactions.map(t => ({
+      ...t,
+      date: t.date.includes("T") ? t.date.split("T")[0] : t.date
+    }));
+  }, [transactions]);
+
   // Categorias únicas presentes
   const categories = useMemo(() => {
     const cats = new Set<string>();
-    transactions.forEach(t => {
+    normalizedTransactions.forEach(t => {
       if (t.category) cats.add(t.category);
     });
     return Array.from(cats);
-  }, [transactions]);
+  }, [normalizedTransactions]);
 
   // Transações filtradas
   const filteredTransactions = useMemo(() => {
-    return transactions.filter(t => {
+    return normalizedTransactions.filter(t => {
       // Filtro de familiar
       if (selectedFamiliarId !== "all" && t.familiarId !== selectedFamiliarId) {
         return false;
@@ -89,7 +97,7 @@ export function FamiliarReports({
       }
       return true;
     }).sort((a, b) => a.date.localeCompare(b.date));
-  }, [transactions, selectedFamiliarId, selectedCategory, selectedType, startDate, endDate]);
+  }, [normalizedTransactions, selectedFamiliarId, selectedCategory, selectedType, startDate, endDate]);
 
   // Totais das transações filtradas
   const totals = useMemo(() => {
@@ -119,7 +127,7 @@ export function FamiliarReports({
     });
 
     // Agrupa transações correspondentes aos filtros (sem o filtro de membro individual para podermos comparar)
-    const baseTransactionsForComparison = transactions.filter(t => {
+    const baseTransactionsForComparison = normalizedTransactions.filter(t => {
       if (selectedCategory !== "all" && t.category !== selectedCategory) return false;
       if (selectedType !== "all" && t.type !== selectedType) return false;
       if (startDate && t.date < startDate) return false;
@@ -145,7 +153,7 @@ export function FamiliarReports({
       expense: data.expense,
       balance: data.income - data.expense
     })).sort((a, b) => b.expense - a.expense); // Ordenado por quem gastou mais
-  }, [familiars, transactions, selectedCategory, selectedType, startDate, endDate]);
+  }, [familiars, normalizedTransactions, selectedCategory, selectedType, startDate, endDate]);
 
   // Dados para o Gráfico em Linha (SVG)
   const chartData = useMemo<DataPoint[]>(() => {

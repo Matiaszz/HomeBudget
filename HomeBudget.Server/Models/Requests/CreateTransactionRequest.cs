@@ -6,13 +6,13 @@ namespace HomeBudget.Server.Models.Requests;
 /// <summary>
 /// Modelo de requisição para criar uma nova transação financeira.
 /// </summary>
-public class CreateTransactionRequest
+public record CreateTransactionRequest
 {
     /// <summary>
     /// Descrição da transação.
     /// </summary>
     [Required(ErrorMessage = "A descrição é obrigatória.")]
-    public string Description { get; set; } = string.Empty;
+    public string Description = string.Empty;
 
     /// <summary>
     /// Valor monetário em centavos (ex: 3000 para R$ 30,00).

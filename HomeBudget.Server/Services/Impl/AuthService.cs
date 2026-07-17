@@ -71,7 +71,6 @@ public class AuthService(IUserRepository userRepository, IConfiguration configur
             Name = user.Name,
             Email = user.Email,
             Birthdate = user.Birthdate,
-            CanHaveIncome = user.CanHaveIncome()
         };
     }
 
@@ -108,7 +107,6 @@ public class AuthService(IUserRepository userRepository, IConfiguration configur
                 Name = user.Name,
                 Email = user.Email,
                 Birthdate = user.Birthdate,
-                CanHaveIncome = user.CanHaveIncome()
             }
         };
     }
@@ -128,7 +126,6 @@ public class AuthService(IUserRepository userRepository, IConfiguration configur
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Name, user.Name),
             new Claim(ClaimTypes.Email, user.Email),
-            new Claim("CanHaveIncome", user.CanHaveIncome().ToString().ToLower())
         };
 
         var tokenDescriptor = new SecurityTokenDescriptor

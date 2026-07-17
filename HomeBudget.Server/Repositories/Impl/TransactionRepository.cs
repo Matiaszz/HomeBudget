@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using HomeBudget.Server.Data;
 using HomeBudget.Server.Models;
 using HomeBudget.Server.Repositories.Contracts;
+using HomeBudget.Server.Models.Responses;
 
 namespace HomeBudget.Server.Repositories.Impl;
 
@@ -48,7 +49,7 @@ public class TransactionRepository(AppDbContext context) : ITransactionRepositor
     /// <summary>
     /// Calcula o resumo orçamentário consolidado e agrupado da família.
     /// </summary>
-    public async Task<HomeBudget.Server.Models.Responses.FamilyBudgetSummaryDto> GetBudgetSummaryAsync(Guid familyId)
+    public async Task<FamilyBudgetSummaryDto> GetBudgetSummaryAsync(Guid familyId)
     {
         var totalIncome = await _context.Transactions
             .Where(t => t.FamilyId == familyId && t.Type == "income")
@@ -61,7 +62,7 @@ public class TransactionRepository(AppDbContext context) : ITransactionRepositor
         var familiarExpenses = await _context.Transactions
             .Where(t => t.FamilyId == familyId && t.Type == "expense" && t.FamiliarId != null)
             .GroupBy(t => new { t.FamiliarId, t.Familiar!.Name })
-            .Select(g => new HomeBudget.Server.Models.Responses.FamiliarExpenseDto
+            .Select(g => new FamiliarExpenseDto
             {
                 FamiliarId = g.Key.FamiliarId!.Value,
                 FamiliarName = g.Key.Name,
@@ -72,7 +73,7 @@ public class TransactionRepository(AppDbContext context) : ITransactionRepositor
         var categoryExpenses = await _context.Transactions
             .Where(t => t.FamilyId == familyId && t.Type == "expense")
             .GroupBy(t => t.Category)
-            .Select(g => new HomeBudget.Server.Models.Responses.CategoryExpenseDto
+            .Select(g => new CategoryExpenseDto
             {
                 Category = g.Key,
                 TotalAmount = g.Sum(t => t.Amount)
@@ -99,7 +100,7 @@ public class TransactionRepository(AppDbContext context) : ITransactionRepositor
         var familiarSummaries = familiarsList.Select(f =>
         {
             var txSum = transactionsGrouped.FirstOrDefault(tg => tg.FamiliarId == f.Id);
-            return new HomeBudget.Server.Models.Responses.FamiliarSummaryDto
+            return new FamiliarSummaryDto
             {
                 FamiliarId = f.Id,
                 FamiliarName = f.Name,
@@ -108,7 +109,7 @@ public class TransactionRepository(AppDbContext context) : ITransactionRepositor
             };
         }).ToList();
 
-        return new HomeBudget.Server.Models.Responses.FamilyBudgetSummaryDto
+        return new FamilyBudgetSummaryDto
         {
             TotalIncome = totalIncome,
             TotalExpense = totalExpense,

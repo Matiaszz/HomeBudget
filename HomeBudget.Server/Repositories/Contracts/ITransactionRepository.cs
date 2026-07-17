@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HomeBudget.Server.Models;
+using HomeBudget.Server.Models.Responses;
 
 namespace HomeBudget.Server.Repositories.Contracts;
 
@@ -37,7 +38,7 @@ public interface ITransactionRepository
     /// </summary>
     /// <param name="familyId">Identificador único da família.</param>
     /// <returns>O DTO completo de resumo com os acumulados em centavos.</returns>
-    Task<HomeBudget.Server.Models.Responses.FamilyBudgetSummaryDto> GetBudgetSummaryAsync(Guid familyId);
+    Task<FamilyBudgetSummaryDto> GetBudgetSummaryAsync(Guid familyId);
 
     /// <summary>
     /// Persiste as alterações pendentes no banco.
