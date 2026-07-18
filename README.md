@@ -11,13 +11,14 @@ Antes de começar, você precisará ter instalado em sua máquina:
   ```bash
   dotnet workload install aspire
   ```
+- Tool do Entity Framework no .NET (dotnet tool install --global dotnet-ef)
 
 ---
 
 ## ⚙️ Configuração do Ambiente
 
 **Configurações do .NET (appsettings.Development.json):**
-Nas pastas [HomeBudget.AppHost](file:///E:/Projetos/csharp/HomeBudget/HomeBudget.AppHost) e [HomeBudget.Server](file:///E:/Projetos/csharp/HomeBudget/HomeBudget.Server), crie um arquivo `appsettings.Development.json` baseado no `appsettings.json` de cada respectiva pasta.
+Nas pastas [HomeBudget.AppHost](file:///E:/Projetos/csharp/HomeBudget/HomeBudget.AppHost) e [HomeBudget.Server](file:///E:/Projetos/csharp/HomeBudget/HomeBudget.Server), crie um arquivo `appsettings.Development.json` copiando o conteúdo do `appsettings.json` de cada uma delas.
 
 > [!IMPORTANT]
 > Certifique-se de atualizar a string de conexão `DefaultConnection` no arquivo do **Server** para usar as mesmas credenciais.
@@ -35,9 +36,21 @@ cd frontend
 npm install
 ```
 
-### 2. Executar a Aplicação (via .NET Aspire)
+### 2. Banco de dados
 
-Para iniciar tanto a API backend quanto o frontend orquestrados pelo Aspire, execute o comando a partir da raiz do projeto:
+- Crie um banco de dados PostgreSQL utilizando as mesmas credenciais configuradas no arquivo `appsettings.Development.json` do projeto `HomeBudget.Server`.
+
+- Aplique as migrations no banco utilizando o comando `dotnet ef database update` (no terminal, você deverá estar no projeto `HomeBudget.Server`)
+
+### 3. Executar a Aplicação (via .NET Aspire)
+
+Para iniciar tanto a API backend quanto o frontend orquestrados pelo Aspire, execute os comandos a partir da raiz do projeto:
+
+```bash
+dotnet dev-certs https --trust
+```
+
+Será exibida uma janela solicitando a confiança no certificado HTTPS de desenvolvimento. Aceite a solicitação para que a aplicação funcione corretamente em ambiente local.
 
 ```bash
 dotnet run --project HomeBudget.AppHost
