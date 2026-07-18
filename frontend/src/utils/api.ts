@@ -83,28 +83,6 @@ const getAuthToken = (): string | null => {
 
 /**
  * Função utilitária global para realizar requisições HTTP Fetch tipadas para a API.
- *
- * TRATADO (MELHORIAS DE RESILIÊNCIA E ROBUSTEZ):
- *
- * 1. Acesso Seguro ao LocalStorage:
- *    Usa a função `getAuthToken` verificando se o objeto window existe para evitar falhas em SSR.
- *
- * 2. Interceptor de Autenticação (401 Unauthorized):
- *    Se o token expirar e o backend responder 401, remove o token expirado e
- *    redireciona para /login (apenas se não estiver tentando logar).
- *
- * 3. Validação de Tipo de Conteúdo e Mensagens de Erro Não-JSON:
- *    Se o servidor retornar erro com HTML ou texto puro (ex: IIS/Nginx offlines, proxy 502 ou exception ASP.NET),
- *    a função recupera o conteúdo usando `.text()` de forma defensiva para ler o status e a mensagem de erro.
- *
- * 4. Fim do Asserção Insegura:
- *    Retorna o dado mapeado com coerção direta (`result.data as T`), deixando o runtime seguro contra valores nulos.
- *
- * 5. URL Base de ambiente:
- *    Prepara a URL concatenando o prefixo da API definido em variáveis de ambiente se configurado.
- *
- * 6. Timeout:
- *    Suporta cancelamento de requisição por tempo limite (padrão de 15 segundos) via AbortController.
  */
 export async function apiRequest<T>(
   url: string,

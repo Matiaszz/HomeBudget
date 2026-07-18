@@ -620,7 +620,6 @@ export default function App() {
         {/* Footer */}
         <footer className="border-t border-border/60 py-6 text-center text-xs text-muted-foreground bg-muted/30 shrink-0">
           <p>&copy; {new Date().getFullYear()} HomeBudget. Todos os direitos reservados.</p>
-          <p className="mt-1 text-muted-foreground/80">Desenvolvido com .NET 10, .NET Aspire, React e Tailwind CSS v4.</p>
         </footer>
       </div>
     );
@@ -703,7 +702,6 @@ export default function App() {
 
         <footer className="border-t border-border/60 py-6 text-center text-xs text-muted-foreground bg-muted/30">
           <p>&copy; {new Date().getFullYear()} HomeBudget. Todos os direitos reservados.</p>
-          <p className="mt-1 text-muted-foreground/80">Desenvolvido com .NET 10, .NET Aspire, React e Tailwind CSS v4.</p>
         </footer>
       </div>
     );
