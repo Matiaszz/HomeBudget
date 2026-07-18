@@ -6,7 +6,7 @@ Antes de começar, você precisará ter instalado em sua máquina:
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 - [Node.js](https://nodejs.org/) (versão LTS recomendada)
-- [PostgreSQL](https://www.postgresql.org/download/)
+- [PostgreSQL 18](https://www.postgresql.org/download/)
 - Workload do .NET Aspire. Instale usando o comando no terminal:
   ```bash
   dotnet workload install aspire
