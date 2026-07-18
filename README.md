@@ -11,7 +11,10 @@ Antes de começar, você precisará ter instalado em sua máquina:
   ```bash
   dotnet workload install aspire
   ```
-- Tool do Entity Framework no .NET (dotnet tool install --global dotnet-ef)
+- Tool do Entity Framework no .NET. Instale usando o comando no terminal:
+  ```bash
+    dotnet tool install --global dotnet-ef
+  ```
 
 ---
 
