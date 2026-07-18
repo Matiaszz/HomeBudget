@@ -1,16 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { apiRequest, ApiError, getFriendlyErrorMessage } from "./utils/api";
 import {
   LogOut,
   ShieldAlert,
-  Sparkles,
   User as UserIcon,
   CheckCircle2,
   Home,
   X
 } from "lucide-react";
+import { Logo } from "@/components/ui/Logo";
 import { LoginView } from "@/components/auth/LoginView";
 import { RegisterView } from "@/components/auth/RegisterView";
 import { AuthVisualNarrative } from "@/components/auth/AuthVisualNarrative";
@@ -118,17 +118,17 @@ export default function App() {
   }, []);
 
   // Fetch families from backend
-  const fetchFamilies = async () => {
+  const fetchFamilies = useCallback(async () => {
     try {
       const response = await apiRequest<Family[]>("/api/families");
       setFamilies(response);
     } catch (err) {
       console.error("Erro ao carregar famílias", err);
     }
-  };
+  }, []);
 
   // Fetch familiars from backend (paginated)
-  const fetchFamiliars = async (familyId: string, page: number = 1) => {
+  const fetchFamiliars = useCallback(async (familyId: string, page: number = 1) => {
     try {
       const response = await apiRequest<PagedResult<Familiar>>(`/api/families/${familyId}/familiars?page=${page}&pageSize=10`);
       setFamiliars(response.items);
@@ -138,27 +138,27 @@ export default function App() {
     } catch (err) {
       console.error("Erro ao carregar familiares", err);
     }
-  };
+  }, []);
 
   // Fetch transactions from backend (ledger)
-  const fetchTransactions = async (familyId: string) => {
+  const fetchTransactions = useCallback(async (familyId: string) => {
     try {
       const response = await apiRequest<Transaction[]>(`/api/families/${familyId}/transactions`);
       setTransactions(response);
     } catch (err) {
       console.error("Erro ao carregar transações", err);
     }
-  };
+  }, []);
 
   // Fetch consolidated budget summary (ledger running calculations & chart aggregates)
-  const fetchBudgetSummary = async (familyId: string) => {
+  const fetchBudgetSummary = useCallback(async (familyId: string) => {
     try {
       const response = await apiRequest<typeof budgetSummary>(`/api/families/${familyId}/transactions/summary`);
       setBudgetSummary(response);
     } catch (err) {
       console.error("Erro ao carregar consolidação orçamentária", err);
     }
-  };
+  }, []);
 
   // Load user data and state on mount
   useEffect(() => {
@@ -189,7 +189,7 @@ export default function App() {
       setSelectedFamily(null);
       setFamiliars([]);
     }
-  }, [user]);
+  }, [user, fetchFamilies, fetchFamiliars, fetchTransactions, fetchBudgetSummary]);
 
   // Simple client-side Router redirect logic
   useEffect(() => {
@@ -469,7 +469,7 @@ export default function App() {
     setLoading(true);
     setError(null);
     try {
-      await apiRequest<any>(`/api/families/${selectedFamily.id}/transactions`, {
+      await apiRequest<Transaction>(`/api/families/${selectedFamily.id}/transactions`, {
         method: "POST",
         body: JSON.stringify({
           description: tx.description,
@@ -535,7 +535,7 @@ export default function App() {
           <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center border border-border animate-in fade-in spin-in-12 duration-500">
-                <Sparkles className="size-5 text-white" />
+                <Logo className="size-5 text-white" />
               </div>
               <span className="font-bold text-lg tracking-tight text-foreground">
                 HomeBudget
@@ -634,7 +634,7 @@ export default function App() {
           <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center border border-border">
-                <Sparkles className="size-5 text-white" />
+                <Logo className="size-5 text-white" />
               </div>
               <span className="font-bold text-lg tracking-tight text-foreground">
                 HomeBudget
@@ -718,7 +718,7 @@ export default function App() {
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center border border-border">
-              <Sparkles className="size-5 text-white" />
+              <Logo className="size-5 text-white" />
             </div>
             <div className="flex flex-col">
               <span className="font-bold text-lg tracking-tight text-foreground leading-none">
@@ -962,7 +962,6 @@ export default function App() {
       {/* Footer */}
       <footer className="border-t border-border/60 py-6 text-center text-xs text-muted-foreground bg-muted/30">
         <p>&copy; {new Date().getFullYear()} HomeBudget. Todos os direitos reservados.</p>
-        <p className="mt-1 text-muted-foreground/80">Desenvolvido com .NET 10, .NET Aspire, React e Tailwind CSS v4.</p>
       </footer>
     </div>
   );

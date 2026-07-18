@@ -6,6 +6,7 @@ import {
   User, 
   Sparkles
 } from "lucide-react";
+import { Logo } from "@/components/ui/Logo";
 
 export function AuthVisualNarrative() {
   return (
@@ -40,7 +41,7 @@ export function AuthVisualNarrative() {
           <div className="flex items-center justify-between pb-3 border-b border-border/60">
             <div className="flex items-center gap-2">
               <div className="size-6 rounded-md bg-primary flex items-center justify-center">
-                <Sparkles className="size-3.5 text-white" />
+                <Logo className="size-3.5 text-white" />
               </div>
               <div className="flex flex-col">
                 <span className="font-bold text-xs text-foreground leading-none">HomeBudget</span>
